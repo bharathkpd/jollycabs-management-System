@@ -42,8 +42,69 @@ def create_app(config_class=Config):
             )
             admin.set_password('admin123')
             db.session.add(admin)
-            db.session.commit()
-            print("Default admin account created automatically.")
+            
+        # Operations Manager
+        manager = User.query.filter_by(username='manager').first()
+        if not manager:
+            manager = User(
+                username='manager',
+                full_name='Rajesh Khanna (Operations)',
+                email='manager@jollycabs.in',
+                phone='+91 9888877777',
+                role='Operations Manager',
+                status='Active',
+                must_change_password=False
+            )
+            manager.set_password('manager123')
+            db.session.add(manager)
+            
+        # Booking Operator
+        dispatcher = User.query.filter_by(username='dispatcher').first()
+        if not dispatcher:
+            dispatcher = User(
+                username='dispatcher',
+                full_name='Sanjay Sharma (Booking Desk)',
+                email='dispatcher@jollycabs.in',
+                phone='+91 9777766666',
+                role='Booking Operator',
+                status='Active',
+                must_change_password=False
+            )
+            dispatcher.set_password('dispatch123')
+            db.session.add(dispatcher)
+            
+        # Driver Manager
+        drivermgr = User.query.filter_by(username='drivermgr').first()
+        if not drivermgr:
+            drivermgr = User(
+                username='drivermgr',
+                full_name='Gurpreet Singh (Fleet Desk)',
+                email='drivermgr@jollycabs.in',
+                phone='+91 9666655555',
+                role='Driver Manager',
+                status='Active',
+                must_change_password=False
+            )
+            drivermgr.set_password('driver123')
+            db.session.add(drivermgr)
+            
+        # Accounts Manager
+        accounts = User.query.filter_by(username='accounts').first()
+        if not accounts:
+            accounts = User(
+                username='accounts',
+                full_name='Nisha Gupta (Accounts)',
+                email='accounts@jollycabs.in',
+                phone='+91 9555544444',
+                role='Accounts Manager',
+                status='Active',
+                must_change_password=False
+            )
+            accounts.set_password('accounts123')
+            db.session.add(accounts)
+            
+        db.session.commit()
+        print("Default database users seeded.")
     
     # Intercept requests for forced password resets (Super Admin first login check)
     @app.before_request
