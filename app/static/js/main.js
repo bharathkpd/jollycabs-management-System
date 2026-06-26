@@ -61,10 +61,11 @@ function initSidebar() {
         container.classList.add('expanded');
     }
     
-    menuToggle.addEventListener('click', (e) => {
+    // Toggle action
+    const toggleSidebar = (e) => {
+        e.preventDefault();
         e.stopPropagation();
         
-        // Desktop Collapse / Mobile Open Drawer
         if (window.innerWidth > 768) {
             sidebar.classList.toggle('collapsed');
             container.classList.toggle('expanded');
@@ -72,16 +73,23 @@ function initSidebar() {
         } else {
             sidebar.classList.toggle('mobile-open');
         }
-    });
+    };
+    
+    // Bind both click and touch events for absolute responsiveness on mobile devices
+    menuToggle.addEventListener('click', toggleSidebar);
+    menuToggle.addEventListener('touchend', toggleSidebar, { passive: false });
     
     // Close sidebar on mobile clicking outside
-    document.addEventListener('click', (e) => {
+    const handleOutsideClick = (e) => {
         if (window.innerWidth <= 768 && sidebar.classList.contains('mobile-open')) {
-            if (!sidebar.contains(e.target) && e.target !== menuToggle) {
+            if (!sidebar.contains(e.target) && !menuToggle.contains(e.target)) {
                 sidebar.classList.remove('mobile-open');
             }
         }
-    });
+    };
+    
+    document.addEventListener('click', handleOutsideClick);
+    document.addEventListener('touchend', handleOutsideClick, { passive: true });
 }
 
 /**
