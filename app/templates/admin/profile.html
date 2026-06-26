@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block title %}My Profile: {{ current_user.full_name }} - Jolly Cabs{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-title-area">
+        <h1 class="page-title">My Account Profile</h1>
+        <span class="page-subtitle">Manage personal administrative credentials, update passwords, and view system logs</span>
+    </div>
+</div>
+
+<div class="profile-grid">
+    <!-- LEFT COLUMN: ACCOUNT PICTURE AND SUMMARY -->
+    <div class="profile-sidebar-card">
+        {% if current_user.profile_photo %}
+            <img src="{{ url_for('static', filename=current_user.profile_photo) }}" alt="Profile Photo" style="width: 90px; height: 90px; border-radius: 50%; object-fit: cover; border: 3px solid var(--accent-gold); margin-bottom: 20px; box-shadow: var(--shadow-sm);">
+        {% else %}
+            <div class="profile-avatar-lg">
+                {{ current_user.full_name[0] | upper if current_user.full_name else 'A' }}
+            </div>
+        {% endif %}
+        
+        <h2>{{ current_user.full_name }}</h2>
+        <div style="margin-top: 10px;">
+            <span class="badge badge-success">{{ current_user.status }}</span>
+            <span class="badge badge-primary">{{ current_user.role }}</span>
+        </div>
+        
+        <div class="profile-details-list">
+            <div class="profile-detail-item">
+                <div class="profile-detail-label">Staff ID</div>
+                <div class="profile-detail-value">#{{ current_user.id }}</div>
+            </div>
+            <div class="profile-detail-item">
+                <div class="profile-detail-label">Username</div>
+                <div class="profile-detail-value"><code>{{ current_user.username }}</code></div>
+            </div>
+            <div class="profile-detail-item">
+                <div class="profile-detail-label">Email Address</div>
+                <div class="profile-detail-value">{{ current_user.email }}</div>
+            </div>
+            <div class="profile-detail-item">
+                <div class="profile-detail-label">Phone Number</div>
+                <div class="profile-detail-value">{{ current_user.phone }}</div>
+            </div>
+            <div class="profile-detail-item">
+                <div class="profile-detail-label">Registered Date</div>
+                <div class="profile-detail-value">{{ current_user.created_at.strftime('%Y-%m-%d') }}</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- RIGHT COLUMN: UPDATE PROFILE FORM & LOGS -->
+    <div style="display: flex; flex-direction: column; gap: 24px;">
+        <div class="form-card" style="max-width: 100%;">
+            <h3 style="margin-bottom: 20px; font-family: 'Outfit', sans-serif;">Account Settings</h3>
+            <form action="{{ url_for('auth.profile') }}" method="POST" enctype="multipart/form-data">
+                <div class="form-grid" style="grid-template-columns: 1fr 1fr;">
+                    <div class="form-group">
+                        <label class="form-label" for="full_name">Display Full Name *</label>
+                        <input class="form-control" type="text" id="full_name" name="full_name" required value="{{ current_user.full_name }}">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="email">Email Address *</label>
+                        <input class="form-control" type="email" id="email" name="email" required value="{{ current_user.email }}">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="phone">Phone Number *</label>
+                        <input class="form-control" type="tel" id="phone" name="phone" required value="{{ current_user.phone }}">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="profile_photo">Profile Photo (Max 2MB)</label>
+                        <input class="form-control" type="file" id="profile_photo" name="profile_photo" accept="image/*" style="padding: 6px 12px;">
+                    </div>
+                    
+                    <div class="form-group form-group-full">
+                        <label class="form-label" for="password">Change Password (Leave blank to keep current)</label>
+                        <input class="form-control" type="password" id="password" name="password" placeholder="Enter new password (min. 6 characters)">
+                    </div>
+                </div>
+                
+                <div style="display: flex; justify-content: flex-end; margin-top: 16px;">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fa-solid fa-floppy-disk"></i> Update Profile Credentials
+                    </button>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Action logs -->
+        <div class="table-card">
+            <div class="table-header-filters">
+                <h3 class="table-title">My Recent Activity Logs</h3>
+            </div>
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Action</th>
+                            <th>Details</th>
+                            <th>Timestamp</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if logs %}
+                            {% for log in logs %}
+                                <tr>
+                                    <td style="font-weight: 600;">{{ log.action }}</td>
+                                    <td>{{ log.details }}</td>
+                                    <td style="font-size: 13px; color: var(--text-gray);">{{ log.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                                </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="3" style="text-align: center; color: var(--text-muted); padding: 24px 0;">
+                                    No recent activities logged.
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

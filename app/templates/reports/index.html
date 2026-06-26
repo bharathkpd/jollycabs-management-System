@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+
+{% block title %}Reports Panel - Jolly Cabs{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-title-area">
+        <h1 class="page-title">Reports Board</h1>
+        <span class="page-subtitle">Extract business reports and export them as PDF, CSV, or Excel formats</span>
+    </div>
+</div>
+
+<div class="kpi-grid" style="grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));">
+    
+    <!-- 1. REVENUE REPORT CARD -->
+    <div class="kpi-card" style="height: auto; gap: 16px;">
+        <div style="display: flex; gap: 16px; align-items: center;">
+            <div class="kpi-icon success" style="width: 50px; height: 50px; font-size: 24px;">
+                <i class="fa-solid fa-coins"></i>
+            </div>
+            <div>
+                <h3 style="font-size: 18px;">Revenue Report</h3>
+                <p style="font-size: 12px; color: var(--text-muted);">Cumulative billing transactions list and billing audit</p>
+            </div>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px;">
+            <a href="{{ url_for('admin.reports_export', report_type='revenue', format_type='pdf') }}" class="btn btn-secondary" style="font-size: 12px; padding: 8px;">
+                <i class="fa-solid fa-file-pdf" style="color: var(--danger);"></i> PDF
+            </a>
+            <a href="{{ url_for('admin.reports_export', report_type='revenue', format_type='xlsx') }}" class="btn btn-secondary" style="font-size: 12px; padding: 8px;">
+                <i class="fa-solid fa-file-excel" style="color: var(--success);"></i> Excel
+            </a>
+            <a href="{{ url_for('admin.reports_export', report_type='revenue', format_type='csv') }}" class="btn btn-secondary" style="font-size: 12px; padding: 8px;">
+                <i class="fa-solid fa-file-csv" style="color: var(--info);"></i> CSV
+            </a>
+        </div>
+    </div>
+    
+    <!-- 2. BOOKINGS REPORT CARD -->
+    <div class="kpi-card" style="height: auto; gap: 16px;">
+        <div style="display: flex; gap: 16px; align-items: center;">
+            <div class="kpi-icon primary" style="width: 50px; height: 50px; font-size: 24px;">
+                <i class="fa-solid fa-route"></i>
+            </div>
+            <div>
+                <h3 style="font-size: 18px;">Bookings Report</h3>
+                <p style="font-size: 12px; color: var(--text-muted);">Trip routing details, dispatch timing, and payment status</p>
+            </div>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px;">
+            <a href="{{ url_for('admin.reports_export', report_type='bookings', format_type='pdf') }}" class="btn btn-secondary" style="font-size: 12px; padding: 8px;">
+                <i class="fa-solid fa-file-pdf" style="color: var(--danger);"></i> PDF
+            </a>
+            <a href="{{ url_for('admin.reports_export', report_type='bookings', format_type='xlsx') }}" class="btn btn-secondary" style="font-size: 12px; padding: 8px;">
+                <i class="fa-solid fa-file-excel" style="color: var(--success);"></i> Excel
+            </a>
+            <a href="{{ url_for('admin.reports_export', report_type='bookings', format_type='csv') }}" class="btn btn-secondary" style="font-size: 12px; padding: 8px;">
+                <i class="fa-solid fa-file-csv" style="color: var(--info);"></i> CSV
+            </a>
+        </div>
+    </div>
+    
+    <!-- 3. DRIVER REPORT CARD -->
+    <div class="kpi-card" style="height: auto; gap: 16px;">
+        <div style="display: flex; gap: 16px; align-items: center;">
+            <div class="kpi-icon warning" style="width: 50px; height: 50px; font-size: 24px;">
+                <i class="fa-solid fa-id-card"></i>
+            </div>
+            <div>
+                <h3 style="font-size: 18px;">Driver Performance</h3>
+                <p style="font-size: 12px; color: var(--text-muted);">Licensing expiries, status updates, and total driver completed trips</p>
+            </div>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px;">
+            <a href="{{ url_for('admin.reports_export', report_type='driver', format_type='pdf') }}" class="btn btn-secondary" style="font-size: 12px; padding: 8px;">
+                <i class="fa-solid fa-file-pdf" style="color: var(--danger);"></i> PDF
+            </a>
+            <a href="{{ url_for('admin.reports_export', report_type='driver', format_type='xlsx') }}" class="btn btn-secondary" style="font-size: 12px; padding: 8px;">
+                <i class="fa-solid fa-file-excel" style="color: var(--success);"></i> Excel
+            </a>
+            <a href="{{ url_for('admin.reports_export', report_type='driver', format_type='csv') }}" class="btn btn-secondary" style="font-size: 12px; padding: 8px;">
+                <i class="fa-solid fa-file-csv" style="color: var(--info);"></i> CSV
+            </a>
+        </div>
+    </div>
+    
+    <!-- 4. VEHICLE REPORT CARD -->
+    <div class="kpi-card" style="height: auto; gap: 16px;">
+        <div style="display: flex; gap: 16px; align-items: center;">
+            <div class="kpi-icon info" style="width: 50px; height: 50px; font-size: 24px;">
+                <i class="fa-solid fa-taxi"></i>
+            </div>
+            <div>
+                <h3 style="font-size: 18px;">Vehicle Fleet Status</h3>
+                <p style="font-size: 12px; color: var(--text-muted);">Fleet documents compliance, fuel distribution, and maintenance status</p>
+            </div>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px;">
+            <a href="{{ url_for('admin.reports_export', report_type='vehicle', format_type='pdf') }}" class="btn btn-secondary" style="font-size: 12px; padding: 8px;">
+                <i class="fa-solid fa-file-pdf" style="color: var(--danger);"></i> PDF
+            </a>
+            <a href="{{ url_for('admin.reports_export', report_type='vehicle', format_type='xlsx') }}" class="btn btn-secondary" style="font-size: 12px; padding: 8px;">
+                <i class="fa-solid fa-file-excel" style="color: var(--success);"></i> Excel
+            </a>
+            <a href="{{ url_for('admin.reports_export', report_type='vehicle', format_type='csv') }}" class="btn btn-secondary" style="font-size: 12px; padding: 8px;">
+                <i class="fa-solid fa-file-csv" style="color: var(--info);"></i> CSV
+            </a>
+        </div>
+    </div>
+    
+    <!-- 5. CUSTOMER REPORT CARD -->
+    <div class="kpi-card" style="height: auto; gap: 16px;">
+        <div style="display: flex; gap: 16px; align-items: center;">
+            <div class="kpi-icon primary" style="width: 50px; height: 50px; font-size: 24px;">
+                <i class="fa-solid fa-users"></i>
+            </div>
+            <div>
+                <h3 style="font-size: 18px;">Customer Log</h3>
+                <p style="font-size: 12px; color: var(--text-muted);">Full registration lists, total trips booked, and spend values</p>
+            </div>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px;">
+            <a href="{{ url_for('admin.reports_export', report_type='customer', format_type='pdf') }}" class="btn btn-secondary" style="font-size: 12px; padding: 8px;">
+                <i class="fa-solid fa-file-pdf" style="color: var(--danger);"></i> PDF
+            </a>
+            <a href="{{ url_for('admin.reports_export', report_type='customer', format_type='xlsx') }}" class="btn btn-secondary" style="font-size: 12px; padding: 8px;">
+                <i class="fa-solid fa-file-excel" style="color: var(--success);"></i> Excel
+            </a>
+            <a href="{{ url_for('admin.reports_export', report_type='customer', format_type='csv') }}" class="btn btn-secondary" style="font-size: 12px; padding: 8px;">
+                <i class="fa-solid fa-file-csv" style="color: var(--info);"></i> CSV
+            </a>
+        </div>
+    </div>
+    
+</div>
+{% endblock %}

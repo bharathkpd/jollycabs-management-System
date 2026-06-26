@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+
+{% block title %}Monthly Expense Report - Jolly Cabs{% endblock %}
+
+{% block head %}
+<!-- Chart.js Library -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-title-area">
+        <h1 class="page-title">Monthly Expense Report</h1>
+        <span class="page-subtitle">Analyze cost curves, fuel aggregates, and driver payroll budgets</span>
+    </div>
+    <div class="page-actions">
+        <form method="GET" action="{{ url_for('expenses.report') }}" style="display: flex; gap: 8px;">
+            <select name="year" class="filter-select" onchange="this.form.submit()">
+                <option value="2026" {% if current_year == 2026 %}selected{% endif %}>Year 2026</option>
+                <option value="2025" {% if current_year == 2025 %}selected{% endif %}>Year 2025</option>
+                <option value="2027" {% if current_year == 2027 %}selected{% endif %}>Year 2027</option>
+            </select>
+        </form>
+        <a href="{{ url_for('expenses.index') }}" class="btn btn-secondary">
+            <i class="fa-solid fa-arrow-left"></i> General Ledger
+        </a>
+    </div>
+</div>
+
+<!-- CHARTS PANEL -->
+<div class="charts-grid">
+    <div class="chart-card">
+        <div class="chart-header">
+            <h3 class="chart-title">Monthly Spending Trend ({{ current_year }})</h3>
+        </div>
+        <div class="chart-body">
+            <canvas id="monthlyExpenseChart" 
+                    data-labels='{{ months_labels | tojson }}' 
+                    data-values='{{ months_totals | tojson }}'></canvas>
+        </div>
+    </div>
+    
+    <div class="chart-card">
+        <div class="chart-header">
+            <h3 class="chart-title">Spending Breakdown by Category</h3>
+        </div>
+        <div class="chart-body">
+            <canvas id="expenseCategoryChart"
+                    data-labels='{{ expense_by_type | map(attribute=0) | list | tojson }}'
+                    data-values='{{ expense_by_type | map(attribute=1) | list | tojson }}'></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- MONTHLY LEDGER TABLE -->
+<div class="table-card" style="margin-bottom: 24px;">
+    <div class="table-header-filters">
+        <h3 class="table-title">Monthly Expenditures Summary</h3>
+    </div>
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Month</th>
+                    <th>Year</th>
+                    <th style="text-align: right;">Total Outflow</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for i in range(12) %}
+                    {% if months_totals[i] > 0 %}
+                        <tr>
+                            <td style="font-weight: 600;">{{ months_labels[i] }}</td>
+                            <td>{{ current_year }}</td>
+                            <td style="font-weight: 700; text-align: right; color: var(--danger);">
+                                ₹{{ "{:,.2f}".format(months_totals[i]) }}
+                            </td>
+                        </tr>
+                    {% endif %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    drawExpenseCharts();
+    
+    window.addEventListener('theme-changed', () => {
+        drawExpenseCharts();
+    });
+});
+
+function drawExpenseCharts() {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const gridColor = isDark ? '#1e293b' : '#f1f5f9';
+    const textColor = isDark ? '#94a3b8' : '#64748b';
+    const tooltipBg = isDark ? '#0f172a' : '#ffffff';
+    const tooltipText = isDark ? '#f8fafc' : '#0f172a';
+    
+    // Config Chart Defaults
+    Chart.defaults.color = textColor;
+    Chart.defaults.font.family = "'Plus Jakarta Sans', sans-serif";
+    
+    // Destroy previous charts if they exist
+    const canvas1 = document.getElementById('monthlyExpenseChart');
+    const canvas2 = document.getElementById('expenseCategoryChart');
+    
+    if (window.myExpenseChart1) window.myExpenseChart1.destroy();
+    if (window.myExpenseChart2) window.myExpenseChart2.destroy();
+    
+    if (canvas1) {
+        const labels = JSON.parse(canvas1.dataset.labels || '[]');
+        const values = JSON.parse(canvas1.dataset.values || '[]');
+        
+        window.myExpenseChart1 = new Chart(canvas1, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Monthly Expenditure (INR)',
+                    data: values,
+                    borderColor: '#ef4444',
+                    backgroundColor: 'rgba(239, 68, 68, 0.05)',
+                    fill: true,
+                    tension: 0.35,
+                    borderWidth: 3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { grid: { color: gridColor } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+    }
+    
+    if (canvas2) {
+        const labels = JSON.parse(canvas2.dataset.labels || '[]');
+        const values = JSON.parse(canvas2.dataset.values || '[]');
+        
+        window.myExpenseChart2 = new Chart(canvas2, {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: values,
+                    backgroundColor: ['#ef4444', '#f59e0b', '#10b981', '#3b82f6'],
+                    borderWidth: 2,
+                    borderColor: isDark ? '#0f172a' : '#ffffff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { boxWidth: 12, padding: 16 }
+                    }
+                }
+            }
+        });
+    }
+}
+</script>
+{% endblock %}

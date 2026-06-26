@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}Compliance Notifications - Jolly Cabs{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-title-area">
+        <h1 class="page-title">Compliance Notifications</h1>
+        <span class="page-subtitle">Expirations check alerts for driver licenses, commercial permits, fleet insurance policies, and maintenance schedules</span>
+    </div>
+    <div class="page-actions">
+        <form action="{{ url_for('admin.notifications_read_all') }}" method="POST">
+            <button type="submit" class="btn btn-secondary">
+                <i class="fa-solid fa-envelope-open"></i> Mark All as Read
+            </button>
+        </form>
+    </div>
+</div>
+
+<div class="table-card">
+    <div class="table-header-filters">
+        <h3 class="table-title">Compliance Alerts Center</h3>
+    </div>
+    
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Alert ID</th>
+                    <th>Alert Type</th>
+                    <th>Notification Message</th>
+                    <th>Date Raised</th>
+                    <th>State</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if notifications %}
+                    {% for item in notifications %}
+                        <tr style="{% if item.status == 'Unread' %}font-weight: 600; background-color: var(--primary-light);{% endif %}">
+                            <td>#{{ item.id }}</td>
+                            <td>
+                                <span class="badge {% if item.type == 'License Expiry' %}badge-warning{% elif item.type == 'Insurance Expiry' %}badge-danger{% elif item.type == 'Permit Expiry' %}badge-danger{% else %}badge-info{% endif %}">
+                                    {{ item.type }}
+                                </span>
+                            </td>
+                            <td>{{ item.message }}</td>
+                            <td>{{ item.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                            <td>
+                                <span class="badge {% if item.status == 'Unread' %}badge-warning{% else %}badge-secondary{% endif %}">
+                                    {{ item.status }}
+                                </span>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 40px 0;">
+                            No compliance alerts currently raised in the system.
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

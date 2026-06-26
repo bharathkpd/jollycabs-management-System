@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+
+{% block title %}Expenses Ledger - Jolly Cabs{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-title-area">
+        <h1 class="page-title">Expenses Ledger</h1>
+        <span class="page-subtitle">Track operational costs (fuel, repairs, driver salaries, and general overheads)</span>
+    </div>
+    <div class="page-actions">
+        <a href="{{ url_for('expenses.report') }}" class="btn btn-secondary">
+            <i class="fa-solid fa-chart-line"></i> Expense Report
+        </a>
+        <a href="{{ url_for('expenses.add') }}" class="btn btn-primary">
+            <i class="fa-solid fa-file-invoice-dollar"></i> Log Expense
+        </a>
+    </div>
+</div>
+
+<!-- EXPENSE SUMMARY STATS -->
+<div class="kpi-grid">
+    <div class="kpi-card">
+        <div class="kpi-header">
+            <span>Total Expenses</span>
+            <div class="kpi-icon danger"><i class="fa-solid fa-wallet"></i></div>
+        </div>
+        <div class="kpi-value">₹{{ "{:,.2f}".format(total_expenses) }}</div>
+        <div class="kpi-trend down"><i class="fa-solid fa-arrow-right"></i> Cumulative</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-header">
+            <span>Fuel Expenses</span>
+            <div class="kpi-icon primary"><i class="fa-solid fa-gas-pump"></i></div>
+        </div>
+        <div class="kpi-value">₹{{ "{:,.2f}".format(fuel_expenses) }}</div>
+        <div class="kpi-trend down"><i class="fa-solid fa-arrow-right"></i> Fuel logs</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-header">
+            <span>Maintenance cost</span>
+            <div class="kpi-icon warning"><i class="fa-solid fa-wrench"></i></div>
+        </div>
+        <div class="kpi-value">₹{{ "{:,.2f}".format(maint_expenses) }}</div>
+        <div class="kpi-trend down"><i class="fa-solid fa-arrow-right"></i> Fleet repairs</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-header">
+            <span>Driver Salaries</span>
+            <div class="kpi-icon success"><i class="fa-solid fa-sack-dollar"></i></div>
+        </div>
+        <div class="kpi-value">₹{{ "{:,.2f}".format(salary_expenses) }}</div>
+        <div class="kpi-trend down"><i class="fa-solid fa-arrow-right"></i> Payout logs</div>
+    </div>
+</div>
+
+<!-- LEDGER TABLE CARD -->
+<div class="table-card">
+    <div class="table-header-filters">
+        <h3 class="table-title">General Ledger</h3>
+        
+        <form method="GET" action="{{ url_for('expenses.index') }}" class="table-filters">
+            <input type="text" name="search" placeholder="Search description..." class="filter-select" style="min-width: 200px;" value="{{ search_query }}">
+            
+            <select name="type" class="filter-select" onchange="this.form.submit()">
+                <option value="">All Expense Types</option>
+                <option value="Fuel" {% if type_filter == 'Fuel' %}selected{% endif %}>Fuel Expense</option>
+                <option value="Maintenance" {% if type_filter == 'Maintenance' %}selected{% endif %}>Maintenance Expense</option>
+                <option value="Salary" {% if type_filter == 'Salary' %}selected{% endif %}>Driver Salary</option>
+                <option value="Miscellaneous" {% if type_filter == 'Miscellaneous' %}selected{% endif %}>Miscellaneous Expense</option>
+            </select>
+            
+            <button type="submit" class="btn btn-secondary">Filter</button>
+            {% if search_query or type_filter %}
+                <a href="{{ url_for('expenses.index') }}" class="btn btn-danger" title="Clear Filters"><i class="fa-solid fa-filter-circle-xmark"></i></a>
+            {% endif %}
+        </form>
+    </div>
+    
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Expense ID</th>
+                    <th>Type</th>
+                    <th>Amount</th>
+                    <th>Expense Date</th>
+                    <th>Description</th>
+                    <th>Associated Driver / Vehicle</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if expenses %}
+                    {% for expense in expenses %}
+                        <tr>
+                            <td>#{{ expense.id }}</td>
+                            <td>
+                                <span class="badge {% if expense.type == 'Fuel' %}badge-primary{% elif expense.type == 'Maintenance' %}badge-warning{% elif expense.type == 'Salary' %}badge-success{% else %}badge-secondary{% endif %}">
+                                    {{ expense.type }}
+                                </span>
+                            </td>
+                            <td style="font-weight: 700; color: var(--danger);">₹{{ "{:,.2f}".format(expense.amount) }}</td>
+                            <td>{{ expense.expense_date.strftime('%Y-%m-%d') }}</td>
+                            <td>{{ expense.description }}</td>
+                            <td>
+                                {% if expense.driver %}
+                                    <i class="fa-solid fa-user"></i> {{ expense.driver.name }} <br>
+                                {% endif %}
+                                {% if expense.vehicle %}
+                                    <i class="fa-solid fa-car"></i> {{ expense.vehicle.vehicle_number }}
+                                {% endif %}
+                                {% if not expense.driver and not expense.vehicle %}
+                                    <span class="text-muted">None</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if current_user.has_role('Super Admin') %}
+                                    <form action="{{ url_for('expenses.delete', expense_id=expense.id) }}" method="POST" onsubmit="return confirmAction('Delete this expense ledger entry permanently?');">
+                                        <button type="submit" class="btn-icon" style="color: var(--danger); border-color: var(--danger-light);" title="Delete ledger entry">
+                                            <i class="fa-solid fa-trash-can"></i>
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 40px 0;">
+                            No expense transactions recorded matching your criteria.
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- PAGINATION AREA -->
+    {% if pagination and pagination.pages > 1 %}
+    <div class="pagination-area">
+        <span>Showing ledger page {{ pagination.page }} of {{ pagination.pages }}</span>
+        <div class="pagination-controls">
+            <button class="pagination-btn" {% if not pagination.has_prev %}disabled{% endif %} onclick="window.location.href='{{ url_for('expenses.index', page=pagination.prev_num, search=search_query, type=type_filter) }}'">
+                <i class="fa-solid fa-chevron-left"></i> Prev
+            </button>
+            <button class="pagination-btn" {% if not pagination.has_next %}disabled{% endif %} onclick="window.location.href='{{ url_for('expenses.index', page=pagination.next_num, search=search_query, type=type_filter) }}'">
+                Next <i class="fa-solid fa-chevron-right"></i>
+            </button>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

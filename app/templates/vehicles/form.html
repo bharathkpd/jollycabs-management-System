@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}{{ action }} Vehicle - Jolly Cabs{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-title-area">
+        <h1 class="page-title">{{ action }} Vehicle</h1>
+        <span class="page-subtitle">{% if action == 'Add' %}Register a new vehicle in the fleet database{% else %}Modify existing vehicle specifications and documents status{% endif %}</span>
+    </div>
+    <div class="page-actions">
+        <a href="{{ url_for('vehicles.index') }}" class="btn btn-secondary">
+            <i class="fa-solid fa-arrow-left"></i> Back to List
+        </a>
+    </div>
+</div>
+
+<div class="form-card">
+    <form action="{% if action == 'Add' %}{{ url_for('vehicles.add') }}{% else %}{{ url_for('vehicles.edit', vehicle_id=vehicle.id) }}{% endif %}" method="POST">
+        
+        <div class="form-grid">
+            <div class="form-group">
+                <label class="form-label" for="model">Vehicle Model *</label>
+                <input class="form-control" type="text" id="model" name="model" required placeholder="e.g. Maruti Suzuki Dzire" value="{{ vehicle.model if vehicle else '' }}">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="vehicle_number">Vehicle Plate Number *</label>
+                <input class="form-control" type="text" id="vehicle_number" name="vehicle_number" required placeholder="e.g. MH-02-AB-1234" {% if action == 'Edit' %}readonly{% endif %} value="{{ vehicle.vehicle_number if vehicle else '' }}">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="fuel_type">Fuel Type *</label>
+                <select class="form-control" id="fuel_type" name="fuel_type" required>
+                    <option value="Petrol" {% if vehicle and vehicle.fuel_type == 'Petrol' %}selected{% endif %}>Petrol</option>
+                    <option value="Diesel" {% if vehicle and vehicle.fuel_type == 'Diesel' %}selected{% endif %}>Diesel</option>
+                    <option value="CNG" {% if vehicle and vehicle.fuel_type == 'CNG' %}selected{% endif %}>CNG</option>
+                    <option value="Electric" {% if vehicle and vehicle.fuel_type == 'Electric' %}selected{% endif %}>Electric</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="insurance_expiry">Insurance Expiry Date *</label>
+                <input class="form-control" type="date" id="insurance_expiry" name="insurance_expiry" required value="{{ vehicle.insurance_expiry.strftime('%Y-%m-%d') if (vehicle and vehicle.insurance_expiry) else '' }}">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="permit_expiry">Commercial Permit Expiry *</label>
+                <input class="form-control" type="date" id="permit_expiry" name="permit_expiry" required value="{{ vehicle.permit_expiry.strftime('%Y-%m-%d') if (vehicle and vehicle.permit_expiry) else '' }}">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="maintenance_status">Maintenance/Health Status</label>
+                <select class="form-control" id="maintenance_status" name="maintenance_status">
+                    <option value="Good" {% if vehicle and vehicle.maintenance_status == 'Good' %}selected{% endif %}>Good (Roadworthy)</option>
+                    <option value="Under Maintenance" {% if vehicle and vehicle.maintenance_status == 'Under Maintenance' %}selected{% endif %}>Under Maintenance</option>
+                    <option value="Needs Inspection" {% if vehicle and vehicle.maintenance_status == 'Needs Inspection' %}selected{% endif %}>Needs Inspection</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="availability">Availability State</label>
+                <select class="form-control" id="availability" name="availability">
+                    <option value="Available" {% if vehicle and vehicle.availability == 'Available' %}selected{% endif %}>Available</option>
+                    <option value="Busy" {% if vehicle and vehicle.availability == 'Busy' %}selected{% endif %}>Busy (On Trip)</option>
+                    <option value="Out of Service" {% if vehicle and vehicle.availability == 'Out of Service' %}selected{% endif %}>Out of Service</option>
+                </select>
+            </div>
+        </div>
+        
+        <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 12px;">
+            <a href="{{ url_for('vehicles.index') }}" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary">
+                <i class="fa-solid fa-floppy-disk"></i> Save Vehicle Record
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block title %}Customer Profile: {{ customer.name }} - Jolly Cabs{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-title-area">
+        <h1 class="page-title">Customer Profile</h1>
+        <span class="page-subtitle">View details, payments, and trip history logs for {{ customer.name }}</span>
+    </div>
+    <div class="page-actions">
+        <a href="{{ url_for('customers.index') }}" class="btn btn-secondary">
+            <i class="fa-solid fa-arrow-left"></i> Back to List
+        </a>
+        <a href="{{ url_for('customers.edit', customer_id=customer.id) }}" class="btn btn-primary">
+            <i class="fa-solid fa-user-pen"></i> Edit Details
+        </a>
+    </div>
+</div>
+
+<div class="profile-grid">
+    <!-- LEFT CARD: CUSTOMER CREDENTIALS SUMMARY -->
+    <div class="profile-sidebar-card">
+        <div class="profile-avatar-lg">
+            {{ customer.name[0] | upper }}
+        </div>
+        <h2>{{ customer.name }}</h2>
+        <div style="margin-top: 10px;">
+            <span class="badge {% if customer.status == 'Active' %}badge-success{% else %}badge-secondary{% endif %}">{{ customer.status }}</span>
+        </div>
+        
+        <div class="profile-details-list">
+            <div class="profile-detail-item">
+                <div class="profile-detail-label">Customer ID</div>
+                <div class="profile-detail-value">#{{ customer.id }}</div>
+            </div>
+            <div class="profile-detail-item">
+                <div class="profile-detail-label">Phone Number</div>
+                <div class="profile-detail-value">{{ customer.phone }}</div>
+            </div>
+            <div class="profile-detail-item">
+                <div class="profile-detail-label">Email Address</div>
+                <div class="profile-detail-value">{{ customer.email }}</div>
+            </div>
+            <div class="profile-detail-item">
+                <div class="profile-detail-label">Total Trips Placed</div>
+                <div class="profile-detail-value">{{ total_trips }}</div>
+            </div>
+            <div class="profile-detail-item">
+                <div class="profile-detail-label">Lifetime Value (INR)</div>
+                <div class="profile-detail-value" style="font-weight: 700; color: var(--success);">₹{{ "{:,.2f}".format(total_spend) }}</div>
+            </div>
+            <div class="profile-detail-item">
+                <div class="profile-detail-label">Created Date</div>
+                <div class="profile-detail-value">{{ customer.created_at.strftime('%Y-%m-%d') }}</div>
+            </div>
+            <div class="profile-detail-item">
+                <div class="profile-detail-label">Billing Address</div>
+                <div class="profile-detail-value" style="font-size: 13px; color: var(--text-secondary);">{{ customer.address }}</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- RIGHT CARD: TRIPS HISTORY LOG -->
+    <div class="table-card">
+        <div class="table-header-filters">
+            <h3 class="table-title">Ride History</h3>
+        </div>
+        
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Trip ID</th>
+                        <th>Driver</th>
+                        <th>Vehicle</th>
+                        <th>Route</th>
+                        <th>Fare</th>
+                        <th>Trip Status</th>
+                        <th>Payment Status</th>
+                        <th>Date</th>
+                        <th>Details</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if bookings %}
+                        {% for booking in bookings %}
+                            <tr>
+                                <td>#{{ booking.id }}</td>
+                                <td>
+                                    {% if booking.driver %}
+                                        <a href="{{ url_for('drivers.profile', driver_id=booking.driver.id) }}" style="font-weight: 600; color: var(--text-primary);">
+                                            {{ booking.driver.name }}
+                                        </a>
+                                    {% else %}
+                                        <span class="badge badge-secondary">Unassigned</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ booking.vehicle.vehicle_number if booking.vehicle else 'Unassigned' }}</td>
+                                <td>{{ booking.pickup_location }} &rarr; {{ booking.drop_location }}</td>
+                                <td>₹{{ "{:,.2f}".format(booking.fare) }}</td>
+                                <td>
+                                    <span class="badge {% if booking.status == 'Completed' %}badge-success{% elif booking.status == 'Cancelled' %}badge-danger{% elif booking.status in ['Dispatched', 'Ongoing'] %}badge-info{% else %}badge-warning{% endif %}">
+                                        {{ booking.status }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge {% if booking.payment_status == 'Paid' %}badge-success{% elif booking.payment_status == 'Partial' %}badge-warning{% else %}badge-danger{% endif %}">
+                                        {{ booking.payment_status }}
+                                    </span>
+                                </td>
+                                <td>{{ booking.booking_time.strftime('%Y-%m-%d %H:%M') }}</td>
+                                <td>
+                                    <a href="{{ url_for('bookings.detail', booking_id=booking.id) }}" class="btn-icon" title="View Booking">
+                                        <i class="fa-solid fa-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="9" style="text-align: center; color: var(--text-muted); padding: 40px 0;">
+                                No trip history found for this customer.
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

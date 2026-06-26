@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}User Management - Jolly Cabs{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-title-area">
+        <h1 class="page-title">Staff User Management</h1>
+        <span class="page-subtitle">Configure administrative access, staff accounts, and operational role privileges</span>
+    </div>
+    <div class="page-actions">
+        <a href="{{ url_for('admin.user_create') }}" class="btn btn-primary">
+            <i class="fa-solid fa-user-plus"></i> Create Staff User
+        </a>
+    </div>
+</div>
+
+<div class="table-card">
+    <div class="table-header-filters">
+        <h3 class="table-title">System Staff Directory</h3>
+    </div>
+    
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Staff ID</th>
+                    <th>Full Name</th>
+                    <th>Username</th>
+                    <th>Email Address</th>
+                    <th>Phone</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>Last Login</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in users %}
+                    <tr style="{% if u.status == 'Inactive' %}opacity: 0.6;{% endif %}">
+                        <td>#{{ u.id }}</td>
+                        <td style="font-weight: 600;">{{ u.full_name }}</td>
+                        <td><code>{{ u.username }}</code></td>
+                        <td>{{ u.email }}</td>
+                        <td>{{ u.phone }}</td>
+                        <td>
+                            <span class="badge {% if u.role == 'Super Admin' %}badge-danger{% elif u.role == 'Operations Manager' %}badge-primary{% elif u.role == 'Accounts Manager' %}badge-success{% else %}badge-secondary{% endif %}">
+                                {{ u.role }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge {% if u.status == 'Active' %}badge-success{% else %}badge-secondary{% endif %}">
+                                {{ u.status }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if u.last_login %}
+                                {{ u.last_login.strftime('%Y-%m-%d %H:%M') }}
+                            </td>
+                            {% else %}
+                                <span class="text-muted">Never logged in</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div style="display: flex; gap: 8px;">
+                                <a href="{{ url_for('admin.user_edit', user_id=u.id) }}" class="btn-icon" title="Edit account details">
+                                    <i class="fa-solid fa-user-pen"></i>
+                                </a>
+                                <a href="{{ url_for('admin.user_reset_password', user_id=u.id) }}" class="btn-icon" style="color: var(--accent-gold); border-color: var(--warning-light);" title="Force password reset">
+                                    <i class="fa-solid fa-key"></i>
+                                </a>
+                                {% if u.id != current_user.id %}
+                                    <form action="{{ url_for('admin.user_delete', user_id=u.id) }}" method="POST" onsubmit="return confirmAction('Delete staff user account {{ u.username }} permanently? This will remove all their log histories.');">
+                                        <button type="submit" class="btn-icon" style="color: var(--danger); border-color: var(--danger-light);" title="Delete account">
+                                            <i class="fa-solid fa-trash-can"></i>
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block title %}{{ action }} Booking - Jolly Cabs{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-title-area">
+        <h1 class="page-title">{{ action }} Booking</h1>
+        <span class="page-subtitle">{% if action == 'Add' %}Create a new booking and schedule trip details{% else %}Dispatch vehicle or adjust booking record parameters{% endif %}</span>
+    </div>
+    <div class="page-actions">
+        <a href="{{ url_for('bookings.index') }}" class="btn btn-secondary">
+            <i class="fa-solid fa-arrow-left"></i> Back to Ledger
+        </a>
+    </div>
+</div>
+
+<div class="form-card">
+    <form action="{% if action == 'Add' %}{{ url_for('bookings.add') }}{% else %}{{ url_for('bookings.edit', booking_id=booking.id) }}{% endif %}" method="POST">
+        
+        <div class="form-grid">
+            <!-- Customer Select -->
+            <div class="form-group">
+                <label class="form-label" for="customer_id">Select Customer *</label>
+                {% if action == 'Add' %}
+                    <select class="form-control" id="customer_id" name="customer_id" required>
+                        <option value="">-- Choose Customer --</option>
+                        {% for customer in customers %}
+                            <option value="{{ customer.id }}">{{ customer.name }} ({{ customer.phone }})</option>
+                        {% endfor %}
+                    </select>
+                {% else %}
+                    <input class="form-control" type="text" readonly value="{{ booking.customer.name }} ({{ booking.customer.phone }})">
+                    <input type="hidden" name="customer_id" value="{{ booking.customer_id }}">
+                {% endif %}
+            </div>
+            
+            <!-- Driver Select -->
+            <div class="form-group">
+                <label class="form-label" for="driver_id">Assign Driver (Optional)</label>
+                <select class="form-control" id="driver_id" name="driver_id">
+                    <option value="None">-- Select Available Driver --</option>
+                    {% for driver in drivers %}
+                        <option value="{{ driver.id }}" {% if booking and booking.driver_id == driver.id %}selected{% endif %}>
+                            {{ driver.name }} ({{ driver.availability }})
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <!-- Vehicle Select -->
+            <div class="form-group">
+                <label class="form-label" for="vehicle_id">Assign Vehicle (Optional)</label>
+                <select class="form-control" id="vehicle_id" name="vehicle_id">
+                    <option value="None">-- Select Available Vehicle --</option>
+                    {% for vehicle in vehicles %}
+                        <option value="{{ vehicle.id }}" {% if booking and booking.vehicle_id == vehicle.id %}selected{% endif %}>
+                            {{ vehicle.model }} [{{ vehicle.vehicle_number }}]
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <!-- Trip Fare -->
+            <div class="form-group">
+                <label class="form-label" for="fare">Trip Fare (INR) *</label>
+                <input class="form-control" type="number" step="0.01" id="fare" name="fare" required placeholder="e.g. 750.00" value="{{ booking.fare if booking else '0.00' }}">
+            </div>
+            
+            <!-- Pickup Point -->
+            <div class="form-group">
+                <label class="form-label" for="pickup_location">Pickup Location *</label>
+                <input class="form-control" type="text" id="pickup_location" name="pickup_location" required placeholder="e.g. Terminal 3, IGI Airport" value="{{ booking.pickup_location if booking else '' }}">
+            </div>
+            
+            <!-- Drop Point -->
+            <div class="form-group">
+                <label class="form-label" for="drop_location">Drop Location *</label>
+                <input class="form-control" type="text" id="drop_location" name="drop_location" required placeholder="e.g. Connaught Place, New Delhi" value="{{ booking.drop_location if booking else '' }}">
+            </div>
+            
+            <!-- Distance Estimate -->
+            <div class="form-group">
+                <label class="form-label" for="distance">Trip Distance (KM)</label>
+                <input class="form-control" type="number" step="0.1" id="distance" name="distance" placeholder="e.g. 24.5" value="{{ booking.distance if booking else '0.0' }}">
+            </div>
+            
+            <!-- Trip Status -->
+            <div class="form-group">
+                <label class="form-label" for="status">Trip Dispatch Status</label>
+                <select class="form-control" id="status" name="status">
+                    <option value="Pending" {% if booking and booking.status == 'Pending' %}selected{% endif %}>Pending</option>
+                    <option value="Dispatched" {% if booking and booking.status == 'Dispatched' %}selected{% endif %}>Dispatched</option>
+                    <option value="Ongoing" {% if booking and booking.status == 'Ongoing' %}selected{% endif %}>Ongoing</option>
+                    <option value="Completed" {% if booking and booking.status == 'Completed' %}selected{% endif %}>Completed</option>
+                    <option value="Cancelled" {% if booking and booking.status == 'Cancelled' %}selected{% endif %}>Cancelled</option>
+                </select>
+            </div>
+            
+            <!-- Payment Status -->
+            <div class="form-group">
+                <label class="form-label" for="payment_status">Billing Payment Status</label>
+                <select class="form-control" id="payment_status" name="payment_status">
+                    <option value="Unpaid" {% if booking and booking.payment_status == 'Unpaid' %}selected{% endif %}>Unpaid</option>
+                    <option value="Paid" {% if booking and booking.payment_status == 'Paid' %}selected{% endif %}>Paid</option>
+                    <option value="Partial" {% if booking and booking.payment_status == 'Partial' %}selected{% endif %}>Partial</option>
+                </select>
+            </div>
+            
+            <!-- Payment Method (shown if editing and Paid) -->
+            <div class="form-group" id="payment-method-group">
+                <label class="form-label" for="payment_method">Payment Method (if paying now)</label>
+                <select class="form-control" id="payment_method" name="payment_method">
+                    <option value="Cash">Cash</option>
+                    <option value="Card">Credit/Debit Card</option>
+                    <option value="UPI">UPI Payment</option>
+                    <option value="Corporate Netbanking">Corporate Netbanking</option>
+                </select>
+            </div>
+        </div>
+        
+        <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 12px;">
+            <a href="{{ url_for('bookings.index') }}" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary">
+                <i class="fa-solid fa-floppy-disk"></i> {% if action == 'Add' %}Save Booking{% else %}Save Modifications{% endif %}
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

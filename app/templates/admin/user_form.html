@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}{{ action }} Staff User - Jolly Cabs{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-title-area">
+        <h1 class="page-title">{{ action }} Staff User</h1>
+        <span class="page-subtitle">{% if action == 'Add' %}Register a new staff account and allocate their role{% else %}Update existing staff permissions and access status{% endif %}</span>
+    </div>
+    <div class="page-actions">
+        <a href="{{ url_for('admin.users_list') }}" class="btn btn-secondary">
+            <i class="fa-solid fa-arrow-left"></i> Back to Users
+        </a>
+    </div>
+</div>
+
+<div class="form-card">
+    <form action="{% if action == 'Add' %}{{ url_for('admin.user_create') }}{% else %}{{ url_for('admin.user_edit', user_id=user.id) }}{% endif %}" method="POST">
+        
+        <div class="form-grid">
+            <div class="form-group">
+                <label class="form-label" for="full_name">Staff Full Name *</label>
+                <input class="form-control" type="text" id="full_name" name="full_name" required placeholder="e.g. Ramesh Khanna" value="{{ user.full_name if user else '' }}">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="username">Username (Unique) *</label>
+                <input class="form-control" type="text" id="username" name="username" required placeholder="e.g. ramesh" {% if action == 'Edit' %}readonly{% endif %} value="{{ user.username if user else '' }}">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="email">Email Address *</label>
+                <input class="form-control" type="email" id="email" name="email" required placeholder="e.g. ramesh@jollycabs.in" value="{{ user.email if user else '' }}">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="phone">Phone Number *</label>
+                <input class="form-control" type="tel" id="phone" name="phone" required placeholder="e.g. +91 9888877777" value="{{ user.phone if user else '' }}">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="role">User Role *</label>
+                <select class="form-control" id="role" name="role" required>
+                    <option value="Super Admin" {% if user and user.role == 'Super Admin' %}selected{% endif %}>Super Admin</option>
+                    <option value="Operations Manager" {% if user and user.role == 'Operations Manager' %}selected{% endif %}>Operations Manager</option>
+                    <option value="Booking Operator" {% if user and user.role == 'Booking Operator' %}selected{% endif %}>Booking Operator</option>
+                    <option value="Driver Manager" {% if user and user.role == 'Driver Manager' %}selected{% endif %}>Driver Manager</option>
+                    <option value="Accounts Manager" {% if user and user.role == 'Accounts Manager' %}selected{% endif %}>Accounts Manager</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="status">Account Status</label>
+                <select class="form-control" id="status" name="status">
+                    <option value="Active" {% if user and user.status == 'Active' %}selected{% endif %}>Active</option>
+                    <option value="Inactive" {% if user and user.status == 'Inactive' %}selected{% endif %}>Inactive</option>
+                </select>
+            </div>
+            
+            {% if action == 'Add' %}
+            <div class="form-group form-group-full">
+                <label class="form-label" for="password">Temporary Password *</label>
+                <input class="form-control" type="password" id="password" name="password" required minlength="6" placeholder="Enter temporary password (forced to change on first login)">
+            </div>
+            {% endif %}
+        </div>
+        
+        <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 12px;">
+            <a href="{{ url_for('admin.users_list') }}" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary">
+                <i class="fa-solid fa-floppy-disk"></i> Save Staff Account
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

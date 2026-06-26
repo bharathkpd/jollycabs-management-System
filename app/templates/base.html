@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Jolly Cabs Operations Suite{% endblock %}</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- FontAwesome Icon Suite -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom Style Sheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block head %}{% endblock %}
+</head>
+<body>
+
+    <!-- SIDEBAR NAV PANEL -->
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <a href="{{ url_for('dashboard.index') }}" style="display: flex; align-items: center; gap: 4px;">
+                <div class="nav-logo-circle">JC</div>
+                <span class="nav-logo-text">Jolly Cabs</span>
+            </a>
+        </div>
+        
+        <ul class="sidebar-menu">
+            {% if current_user.has_role('Super Admin', 'Operations Manager') %}
+            <li class="sidebar-item {% if request.blueprint == 'dashboard' %}active{% endif %}">
+                <a href="{{ url_for('dashboard.index') }}" class="sidebar-link">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            {% endif %}
+            
+            {% if current_user.has_role('Super Admin', 'Operations Manager', 'Booking Operator') %}
+            <li class="sidebar-item {% if request.blueprint == 'bookings' %}active{% endif %}">
+                <a href="{{ url_for('bookings.index') }}" class="sidebar-link">
+                    <i class="fa-solid fa-calendar-check"></i>
+                    <span>Bookings</span>
+                </a>
+            </li>
+            {% endif %}
+            
+            {% if current_user.has_role('Super Admin', 'Operations Manager', 'Driver Manager') %}
+            <li class="sidebar-item {% if request.blueprint == 'drivers' %}active{% endif %}">
+                <a href="{{ url_for('drivers.index') }}" class="sidebar-link">
+                    <i class="fa-solid fa-users"></i>
+                    <span>Drivers</span>
+                </a>
+            </li>
+            <li class="sidebar-item {% if request.blueprint == 'vehicles' %}active{% endif %}">
+                <a href="{{ url_for('vehicles.index') }}" class="sidebar-link">
+                    <i class="fa-solid fa-car"></i>
+                    <span>Vehicles Fleet</span>
+                </a>
+            </li>
+            {% endif %}
+            
+            {% if current_user.has_role('Super Admin', 'Operations Manager', 'Booking Operator') %}
+            <li class="sidebar-item {% if request.blueprint == 'customers' %}active{% endif %}">
+                <a href="{{ url_for('customers.index') }}" class="sidebar-link">
+                    <i class="fa-solid fa-address-book"></i>
+                    <span>Customers</span>
+                </a>
+            </li>
+            {% endif %}
+            
+            {% if current_user.has_role('Super Admin', 'Accounts Manager') %}
+            <li class="sidebar-item {% if request.blueprint == 'expenses' %}active{% endif %}">
+                <a href="{{ url_for('expenses.index') }}" class="sidebar-link">
+                    <i class="fa-solid fa-wallet"></i>
+                    <span>Expenses Ledger</span>
+                </a>
+            </li>
+            <li class="sidebar-item {% if request.blueprint == 'revenue' %}active{% endif %}">
+                <a href="{{ url_for('revenue.index') }}" class="sidebar-link">
+                    <i class="fa-solid fa-coins"></i>
+                    <span>Revenue Metrics</span>
+                </a>
+            </li>
+            <li class="sidebar-item {% if request.path.startswith('/reports') %}active{% endif %}">
+                <a href="{{ url_for('admin.reports_dashboard') }}" class="sidebar-link">
+                    <i class="fa-solid fa-file-invoice-dollar"></i>
+                    <span>Reports Board</span>
+                </a>
+            </li>
+            {% endif %}
+            
+            {% if current_user.has_role('Super Admin', 'Operations Manager', 'Driver Manager') %}
+            <li class="sidebar-item {% if request.path == '/notifications' %}active{% endif %}">
+                <a href="{{ url_for('admin.notifications_list') }}" class="sidebar-link">
+                    <i class="fa-solid fa-bell"></i>
+                    <span>Compliance Alerts</span>
+                </a>
+            </li>
+            {% endif %}
+            
+            {% if current_user.has_role('Super Admin') %}
+            <li class="sidebar-item {% if request.path == '/admin/users' %}active{% endif %}">
+                <a href="{{ url_for('admin.users_list') }}" class="sidebar-link">
+                    <i class="fa-solid fa-user-gear"></i>
+                    <span>Roles & Users</span>
+                </a>
+            </li>
+            <li class="sidebar-item {% if request.path == '/admin/backup' %}active{% endif %}">
+                <a href="{{ url_for('admin.backup_index') }}" class="sidebar-link">
+                    <i class="fa-solid fa-database"></i>
+                    <span>DB Backups</span>
+                </a>
+            </li>
+            <li class="sidebar-item {% if request.path == '/admin/logs' %}active{% endif %}">
+                <a href="{{ url_for('admin.activity_logs') }}" class="sidebar-link">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    <span>Activity Audit</span>
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+        
+        <div class="sidebar-footer">
+            Logged: {{ current_user.name }}
+        </div>
+    </aside>
+
+    <!-- MAIN INTERFACE PAGE CONTAINER -->
+    <div class="app-container">
+        
+        <!-- HEADER TOP NAVIGATION BAR -->
+        <header class="navbar">
+            <div class="nav-left">
+                <button id="menu-toggle" class="menu-toggle">
+                    <i class="fa-solid fa-bars-staggered"></i>
+                </button>
+                <div class="global-search">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="global-search-input" placeholder="Global Search (Press Enter)..." aria-label="Global Search">
+                </div>
+            </div>
+            
+            <div class="nav-right">
+                <!-- Theme Toggle Button -->
+                <button id="theme-toggle" class="nav-icon-btn" title="Toggle Theme">
+                    <i class="fa-solid fa-moon"></i>
+                </button>
+                
+                <!-- Compliance Alerts Icon -->
+                <a href="{{ url_for('admin.notifications_list') }}" class="nav-icon-btn" title="Compliance Notifications">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    {% if unread_notifications_count > 0 %}
+                        <span class="badge" style="position: absolute; top: -2px; right: -2px; width: 16px; height: 16px; font-size: 9px; display: flex; align-items: center; justify-content: center; background-color: var(--danger); color: white; border-radius: 50%;">{{ unread_notifications_count }}</span>
+                    {% endif %}
+                </a>
+                
+                <!-- User Profile dropdown widget -->
+                <div class="user-profile" onclick="window.location.href='{{ url_for('auth.profile') }}'">
+                    <div class="user-avatar">
+                        {{ current_user.name[0] | upper if current_user.name else 'A' }}
+                    </div>
+                    <div class="user-info">
+                        <span class="user-name">{{ current_user.name }}</span>
+                        <span class="user-role">{{ current_user.role }}</span>
+                    </div>
+                </div>
+                
+                <!-- Logout Button -->
+                <a href="{{ url_for('auth.logout') }}" class="nav-icon-btn" title="Log Out" onclick="return confirmAction('Are you sure you want to sign out?')">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                </a>
+            </div>
+        </header>
+
+        <!-- PAGE CONTENT SECTION -->
+        <main class="page-content">
+            <!-- Flask Message Banner Flashers -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, msg in messages %}
+                        <div class="alert alert-{{ category }}">
+                            <i class="fa-solid {% if category == 'success' %}fa-circle-check{% else %}fa-circle-exclamation{% endif %}"></i>
+                            <span>{{ msg }}</span>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    <!-- Main JS Core -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

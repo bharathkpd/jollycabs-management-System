@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block title %}Driver Profile: {{ driver.name }} - Jolly Cabs{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-title-area">
+        <h1 class="page-title">Driver Profile</h1>
+        <span class="page-subtitle">View details, earnings, and historical trips for {{ driver.name }}</span>
+    </div>
+    <div class="page-actions">
+        <a href="{{ url_for('drivers.index') }}" class="btn btn-secondary">
+            <i class="fa-solid fa-arrow-left"></i> Back to List
+        </a>
+        {% if current_user.has_role('Super Admin', 'Manager') %}
+            <a href="{{ url_for('drivers.edit', driver_id=driver.id) }}" class="btn btn-primary">
+                <i class="fa-solid fa-user-pen"></i> Edit Profile
+            </a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="profile-grid">
+    <!-- LEFT CARD: DRIVER CREDENTIALS SUMMARY -->
+    <div class="profile-sidebar-card">
+        <div class="profile-avatar-lg">
+            {{ driver.name[0] | upper }}
+        </div>
+        <h2>{{ driver.name }}</h2>
+        <div style="margin-top: 10px;">
+            <span class="badge {% if driver.status == 'Active' %}badge-success{% else %}badge-danger{% endif %}">{{ driver.status }}</span>
+            <span class="badge {% if driver.availability == 'Available' %}badge-success{% elif driver.availability == 'Busy' %}badge-warning{% else %}badge-secondary{% endif %}">{{ driver.availability }}</span>
+        </div>
+        
+        <div class="profile-details-list">
+            <div class="profile-detail-item">
+                <div class="profile-detail-label">Driver ID</div>
+                <div class="profile-detail-value">#{{ driver.id }}</div>
+            </div>
+            <div class="profile-detail-item">
+                <div class="profile-detail-label">Phone Number</div>
+                <div class="profile-detail-value">{{ driver.phone }}</div>
+            </div>
+            <div class="profile-detail-item">
+                <div class="profile-detail-label">Email Address</div>
+                <div class="profile-detail-value">{{ driver.email }}</div>
+            </div>
+            <div class="profile-detail-item">
+                <div class="profile-detail-label">Driving License</div>
+                <div class="profile-detail-value"><code>{{ driver.license_number }}</code></div>
+            </div>
+            <div class="profile-detail-item">
+                <div class="profile-detail-label">License Expiry</div>
+                <div class="profile-detail-value">{{ driver.license_expiry.strftime('%Y-%m-%d') }}</div>
+            </div>
+            <div class="profile-detail-item">
+                <div class="profile-detail-label">Total Completed Trips</div>
+                <div class="profile-detail-value">{{ total_trips }}</div>
+            </div>
+            <div class="profile-detail-item">
+                <div class="profile-detail-label">Total Earnings (INR)</div>
+                <div class="profile-detail-value" style="font-weight: 700; color: var(--success);">₹{{ "{:,.2f}".format(total_earnings) }}</div>
+            </div>
+            <div class="profile-detail-item">
+                <div class="profile-detail-label">Home Address</div>
+                <div class="profile-detail-value" style="font-size: 13px; color: var(--text-secondary);">{{ driver.address }}</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- RIGHT CARD: TRIPS HISTORY LOG -->
+    <div class="table-card">
+        <div class="table-header-filters">
+            <h3 class="table-title">Trips History</h3>
+        </div>
+        
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Trip ID</th>
+                        <th>Customer</th>
+                        <th>Route</th>
+                        <th>Fare</th>
+                        <th>Trip Status</th>
+                        <th>Payment Status</th>
+                        <th>Date</th>
+                        <th>Details</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if bookings %}
+                        {% for booking in bookings %}
+                            <tr>
+                                <td>#{{ booking.id }}</td>
+                                <td>
+                                    <a href="{{ url_for('customers.profile', customer_id=booking.customer.id) }}" style="font-weight: 600; color: var(--primary);">
+                                        {{ booking.customer.name }}
+                                    </a>
+                                </td>
+                                <td>{{ booking.pickup_location }} &rarr; {{ booking.drop_location }}</td>
+                                <td>₹{{ "{:,.2f}".format(booking.fare) }}</td>
+                                <td>
+                                    <span class="badge {% if booking.status == 'Completed' %}badge-success{% elif booking.status == 'Cancelled' %}badge-danger{% elif booking.status in ['Dispatched', 'Ongoing'] %}badge-info{% else %}badge-warning{% endif %}">
+                                        {{ booking.status }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge {% if booking.payment_status == 'Paid' %}badge-success{% elif booking.payment_status == 'Partial' %}badge-warning{% else %}badge-danger{% endif %}">
+                                        {{ booking.payment_status }}
+                                    </span>
+                                </td>
+                                <td>{{ booking.booking_time.strftime('%Y-%m-%d %H:%M') }}</td>
+                                <td>
+                                    <a href="{{ url_for('bookings.detail', booking_id=booking.id) }}" class="btn-icon" title="View Booking">
+                                        <i class="fa-solid fa-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="8" style="text-align: center; color: var(--text-muted); padding: 40px 0;">
+                                No bookings found for this driver.
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

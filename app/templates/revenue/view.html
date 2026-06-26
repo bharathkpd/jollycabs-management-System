@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+
+{% block title %}Revenue Analytics - Jolly Cabs{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-title-area">
+        <h1 class="page-title">Revenue & Billing Analytics</h1>
+        <span class="page-subtitle">Cumulative metrics, top performing routes, high-value customers, and payment logs</span>
+    </div>
+</div>
+
+<!-- REVENUE PERIOD SUMMARY CARDS -->
+<div class="kpi-grid">
+    <div class="kpi-card">
+        <div class="kpi-header">
+            <span>Today's Revenue</span>
+            <div class="kpi-icon success"><i class="fa-solid fa-coins"></i></div>
+        </div>
+        <div class="kpi-value">₹{{ "{:,.2f}".format(today_revenue) }}</div>
+        <div class="kpi-trend up"><i class="fa-solid fa-clock"></i> Today</div>
+    </div>
+    
+    <div class="kpi-card">
+        <div class="kpi-header">
+            <span>Weekly Revenue</span>
+            <div class="kpi-icon primary"><i class="fa-solid fa-calendar-week"></i></div>
+        </div>
+        <div class="kpi-value">₹{{ "{:,.2f}".format(weekly_revenue) }}</div>
+        <div class="kpi-trend up"><i class="fa-solid fa-arrow-right"></i> Last 7 Days</div>
+    </div>
+    
+    <div class="kpi-card">
+        <div class="kpi-header">
+            <span>Monthly Revenue</span>
+            <div class="kpi-icon info"><i class="fa-solid fa-calendar-check"></i></div>
+        </div>
+        <div class="kpi-value">₹{{ "{:,.2f}".format(monthly_revenue) }}</div>
+        <div class="kpi-trend up"><i class="fa-solid fa-calendar-days"></i> Current Month</div>
+    </div>
+    
+    <div class="kpi-card">
+        <div class="kpi-header">
+            <span>Yearly Revenue</span>
+            <div class="kpi-icon warning"><i class="fa-solid fa-vault"></i></div>
+        </div>
+        <div class="kpi-value">₹{{ "{:,.2f}".format(yearly_revenue) }}</div>
+        <div class="kpi-trend up"><i class="fa-solid fa-calendar"></i> Year 2026</div>
+    </div>
+</div>
+
+<!-- TOP PERFORMERS GRID -->
+<div class="charts-grid">
+    <!-- Top Routes -->
+    <div class="table-card">
+        <div class="table-header-filters">
+            <h3 class="table-title"><i class="fa-solid fa-map-location-dot"></i> Top 5 Operating Routes</h3>
+        </div>
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Pickup</th>
+                        <th>Drop Location</th>
+                        <th>Trip Count</th>
+                        <th style="text-align: right;">Total Fare (INR)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if top_routes %}
+                        {% for route in top_routes %}
+                            <tr>
+                                <td style="font-weight: 500;">{{ route[0] }}</td>
+                                <td style="font-weight: 500;">{{ route[1] }}</td>
+                                <td>{{ route[2] }} rides</td>
+                                <td style="text-align: right; font-weight: 700; color: var(--success);">
+                                    ₹{{ "{:,.2f}".format(route[3]) }}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 30px 0;">
+                                No completed route logs found.
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- Top Customers -->
+    <div class="table-card">
+        <div class="table-header-filters">
+            <h3 class="table-title"><i class="fa-solid fa-trophy"></i> Top 5 Valued Customers</h3>
+        </div>
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Customer Name</th>
+                        <th>Phone</th>
+                        <th>Trip Count</th>
+                        <th style="text-align: right;">Total Spent (INR)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if top_customers %}
+                        {% for customer in top_customers %}
+                            <tr>
+                                <td style="font-weight: 600; color: var(--primary);">{{ customer[0] }}</td>
+                                <td>{{ customer[1] }}</td>
+                                <td>{{ customer[2] }} trips</td>
+                                <td style="text-align: right; font-weight: 700; color: var(--success);">
+                                    ₹{{ "{:,.2f}".format(customer[3]) }}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 30px 0;">
+                                No customer spend records found.
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- RECENT TRANSACTION LEDGER -->
+<div class="table-card">
+    <div class="table-header-filters">
+        <h3 class="table-title"><i class="fa-solid fa-receipt"></i> Recent Invoice Payments</h3>
+    </div>
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Payment ID</th>
+                    <th>Trip ID</th>
+                    <th>Customer Name</th>
+                    <th>Payment Amount</th>
+                    <th>Payment Method</th>
+                    <th>Transaction Status</th>
+                    <th>Billing Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if recent_transactions %}
+                    {% for txn in recent_transactions %}
+                        <tr>
+                            <td>#{{ txn.id }}</td>
+                            <td>
+                                <a href="{{ url_for('bookings.detail', booking_id=txn.booking_id) }}" style="font-weight: 600; color: var(--primary);">
+                                    #{{ txn.booking_id }}
+                                </a>
+                            </td>
+                            <td>{{ txn.booking.customer.name }}</td>
+                            <td style="font-weight: 700; color: var(--success);">₹{{ "{:,.2f}".format(txn.amount) }}</td>
+                            <td>{{ txn.payment_method }}</td>
+                            <td>
+                                <span class="badge {% if txn.status == 'Completed' %}badge-success{% else %}badge-danger{% endif %}">
+                                    {{ txn.status }}
+                                </span>
+                            </td>
+                            <td>{{ txn.payment_date.strftime('%Y-%m-%d %H:%M') }}</td>
+                        </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 40px 0;">
+                            No payment transactions found.
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

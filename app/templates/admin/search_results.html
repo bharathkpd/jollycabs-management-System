@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+
+{% block title %}Search Results: "{{ query }}" - Jolly Cabs{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-title-area">
+        <h1 class="page-title">Global Search Results</h1>
+        <span class="page-subtitle">Showing matching results for query: <strong>"{{ query }}"</strong></span>
+    </div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 32px;">
+    
+    <!-- 1. DRIVERS MATCHES -->
+    <div class="table-card">
+        <div class="table-header-filters" style="background-color: var(--primary-light);">
+            <h3 class="table-title"><i class="fa-solid fa-users"></i> Drivers Matches ({{ drivers | length }})</h3>
+        </div>
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Phone</th>
+                        <th>License</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if drivers %}
+                        {% for item in drivers %}
+                            <tr>
+                                <td>#{{ item.id }}</td>
+                                <td style="font-weight: 600;">{{ item.name }}</td>
+                                <td>{{ item.phone }}</td>
+                                <td><code>{{ item.license_number }}</code></td>
+                                <td><span class="badge {% if item.status == 'Active' %}badge-success{% else %}badge-secondary{% endif %}">{{ item.status }}</span></td>
+                                <td><a href="{{ url_for('drivers.profile', driver_id=item.id) }}" class="btn btn-secondary" style="padding: 4px 8px; font-size: 12px;">View Profile</a></td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 20px 0;">No drivers matched this query.</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- 2. VEHICLES MATCHES -->
+    <div class="table-card">
+        <div class="table-header-filters" style="background-color: var(--primary-light);">
+            <h3 class="table-title"><i class="fa-solid fa-car"></i> Vehicles Matches ({{ vehicles | length }})</h3>
+        </div>
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Model</th>
+                        <th>Plate Number</th>
+                        <th>Fuel</th>
+                        <th>Availability</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if vehicles %}
+                        {% for item in vehicles %}
+                            <tr>
+                                <td>#{{ item.id }}</td>
+                                <td style="font-weight: 600;">{{ item.model }}</td>
+                                <td><code>{{ item.vehicle_number }}</code></td>
+                                <td>{{ item.fuel_type }}</td>
+                                <td><span class="badge {% if item.availability == 'Available' %}badge-success{% else %}badge-warning{% endif %}">{{ item.availability }}</span></td>
+                                <td>
+                                    {% if current_user.has_role('Super Admin', 'Manager') %}
+                                        <a href="{{ url_for('vehicles.edit', vehicle_id=item.id) }}" class="btn btn-secondary" style="padding: 4px 8px; font-size: 12px;">Edit Specifications</a>
+                                    {% else %}
+                                        <span class="text-muted">None</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 20px 0;">No vehicles matched this query.</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- 3. CUSTOMERS MATCHES -->
+    <div class="table-card">
+        <div class="table-header-filters" style="background-color: var(--primary-light);">
+            <h3 class="table-title"><i class="fa-solid fa-address-book"></i> Customers Matches ({{ customers | length }})</h3>
+        </div>
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Phone</th>
+                        <th>Email</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if customers %}
+                        {% for item in customers %}
+                            <tr>
+                                <td>#{{ item.id }}</td>
+                                <td style="font-weight: 600;">{{ item.name }}</td>
+                                <td>{{ item.phone }}</td>
+                                <td>{{ item.email }}</td>
+                                <td><span class="badge {% if item.status == 'Active' %}badge-success{% else %}badge-secondary{% endif %}">{{ item.status }}</span></td>
+                                <td><a href="{{ url_for('customers.profile', customer_id=item.id) }}" class="btn btn-secondary" style="padding: 4px 8px; font-size: 12px;">View Profile</a></td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 20px 0;">No customers matched this query.</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- 4. BOOKINGS MATCHES -->
+    <div class="table-card">
+        <div class="table-header-filters" style="background-color: var(--primary-light);">
+            <h3 class="table-title"><i class="fa-solid fa-route"></i> Bookings Matches ({{ bookings | length }})</h3>
+        </div>
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Trip ID</th>
+                        <th>Customer</th>
+                        <th>Pickup &rarr; Drop Route</th>
+                        <th>Fare</th>
+                        <th>Trip Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if bookings %}
+                        {% for item in bookings %}
+                            <tr>
+                                <td>#{{ item.id }}</td>
+                                <td style="font-weight: 600;">{{ item.customer.name }}</td>
+                                <td>{{ item.pickup_location }} &rarr; {{ item.drop_location }}</td>
+                                <td>₹{{ "{:,.2f}".format(item.fare) }}</td>
+                                <td><span class="badge badge-info">{{ item.status }}</span></td>
+                                <td><a href="{{ url_for('bookings.detail', booking_id=item.id) }}" class="btn btn-secondary" style="padding: 4px 8px; font-size: 12px;">View Itinerary</a></td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 20px 0;">No booking records matched this query.</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+</div>
+{% endblock %}

@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}{{ action }} Expense - Jolly Cabs{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-title-area">
+        <h1 class="page-title">Log Operations Expense</h1>
+        <span class="page-subtitle">Log fuel receipts, repair costs, salaries, or office miscellaneous expenditures</span>
+    </div>
+    <div class="page-actions">
+        <a href="{{ url_for('expenses.index') }}" class="btn btn-secondary">
+            <i class="fa-solid fa-arrow-left"></i> Back to Ledger
+        </a>
+    </div>
+</div>
+
+<div class="form-card">
+    <form action="{{ url_for('expenses.add') }}" method="POST">
+        
+        <div class="form-grid">
+            <div class="form-group">
+                <label class="form-label" for="type">Expense Category *</label>
+                <select class="form-control" id="type" name="type" required>
+                    <option value="">-- Choose Category --</option>
+                    <option value="Fuel">Fuel Expense</option>
+                    <option value="Maintenance">Maintenance Expense</option>
+                    <option value="Salary">Driver Salary</option>
+                    <option value="Miscellaneous">Miscellaneous / Overhead</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="amount">Amount (INR) *</label>
+                <input class="form-control" type="number" step="0.01" id="amount" name="amount" required placeholder="0.00">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="expense_date">Date of Transaction *</label>
+                <input class="form-control" type="date" id="expense_date" name="expense_date" required>
+            </div>
+            
+            <!-- Map Vehicle -->
+            <div class="form-group">
+                <label class="form-label" for="vehicle_id">Map Vehicle (Optional)</label>
+                <select class="form-control" id="vehicle_id" name="vehicle_id">
+                    <option value="None">-- Not Applicable --</option>
+                    {% for vehicle in vehicles %}
+                        <option value="{{ vehicle.id }}">{{ vehicle.model }} [{{ vehicle.vehicle_number }}]</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <!-- Map Driver -->
+            <div class="form-group">
+                <label class="form-label" for="driver_id">Map Driver (Optional)</label>
+                <select class="form-control" id="driver_id" name="driver_id">
+                    <option value="None">-- Not Applicable --</option>
+                    {% for driver in drivers %}
+                        <option value="{{ driver.id }}">{{ driver.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="form-group form-group-full">
+                <label class="form-label" for="description">Expense Description / Notes *</label>
+                <textarea class="form-control" id="description" name="description" rows="3" required placeholder="Describe what the expense was for, billing invoice references, etc."></textarea>
+            </div>
+        </div>
+        
+        <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 12px;">
+            <a href="{{ url_for('expenses.index') }}" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary">
+                <i class="fa-solid fa-file-invoice"></i> Save Expense Entry
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

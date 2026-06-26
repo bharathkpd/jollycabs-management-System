@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+
+{% block title %}Bookings Ledger - Jolly Cabs{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-title-area">
+        <h1 class="page-title">Bookings Ledger</h1>
+        <span class="page-subtitle">Schedule rides, allocate drivers and vehicles, and track billing states</span>
+    </div>
+    <div class="page-actions">
+        <a href="{{ url_for('bookings.add') }}" class="btn btn-primary">
+            <i class="fa-solid fa-circle-plus"></i> New Booking
+        </a>
+    </div>
+</div>
+
+<!-- BOOKINGS TABLE CARD -->
+<div class="table-card">
+    <div class="table-header-filters">
+        <h3 class="table-title">All Bookings</h3>
+        
+        <form method="GET" action="{{ url_for('bookings.index') }}" class="table-filters">
+            <input type="text" name="search" placeholder="Search customer or route..." class="filter-select" style="min-width: 220px;" value="{{ search_query }}">
+            
+            <select name="status" class="filter-select" onchange="this.form.submit()">
+                <option value="">All Statuses</option>
+                <option value="Pending" {% if status_filter == 'Pending' %}selected{% endif %}>Pending</option>
+                <option value="Dispatched" {% if status_filter == 'Dispatched' %}selected{% endif %}>Dispatched</option>
+                <option value="Ongoing" {% if status_filter == 'Ongoing' %}selected{% endif %}>Ongoing</option>
+                <option value="Completed" {% if status_filter == 'Completed' %}selected{% endif %}>Completed</option>
+                <option value="Cancelled" {% if status_filter == 'Cancelled' %}selected{% endif %}>Cancelled</option>
+            </select>
+            
+            <select name="payment_status" class="filter-select" onchange="this.form.submit()">
+                <option value="">All Payments</option>
+                <option value="Unpaid" {% if payment_filter == 'Unpaid' %}selected{% endif %}>Unpaid</option>
+                <option value="Paid" {% if payment_filter == 'Paid' %}selected{% endif %}>Paid</option>
+                <option value="Partial" {% if payment_filter == 'Partial' %}selected{% endif %}>Partial</option>
+            </select>
+            
+            <button type="submit" class="btn btn-secondary">Filter</button>
+            {% if search_query or status_filter or payment_filter %}
+                <a href="{{ url_for('bookings.index') }}" class="btn btn-danger" title="Clear Filters"><i class="fa-solid fa-filter-circle-xmark"></i></a>
+            {% endif %}
+        </form>
+    </div>
+    
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Trip ID</th>
+                    <th>Customer</th>
+                    <th>Driver</th>
+                    <th>Vehicle</th>
+                    <th>Route (Pick - Drop)</th>
+                    <th>Fare</th>
+                    <th>Status</th>
+                    <th>Payment</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if bookings %}
+                    {% for booking in bookings %}
+                        <tr>
+                            <td>#{{ booking.id }}</td>
+                            <td>
+                                <a href="{{ url_for('customers.profile', customer_id=booking.customer.id) }}" style="font-weight: 600; color: var(--primary);">
+                                    {{ booking.customer.name }}
+                                </a>
+                            </td>
+                            <td>
+                                {% if booking.driver %}
+                                    <a href="{{ url_for('drivers.profile', driver_id=booking.driver.id) }}" style="color: var(--text-primary);">
+                                        {{ booking.driver.name }}
+                                    </a>
+                                {% else %}
+                                    <span class="badge badge-secondary">Unassigned</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ booking.vehicle.vehicle_number if booking.vehicle else 'Unassigned' }}</td>
+                            <td>{{ booking.pickup_location }} &rarr; {{ booking.drop_location }}</td>
+                            <td>₹{{ "{:,.2f}".format(booking.fare) }}</td>
+                            <td>
+                                <span class="badge {% if booking.status == 'Completed' %}badge-success{% elif booking.status == 'Cancelled' %}badge-danger{% elif booking.status in ['Dispatched', 'Ongoing'] %}badge-info{% else %}badge-warning{% endif %}">
+                                    {{ booking.status }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge {% if booking.payment_status == 'Paid' %}badge-success{% elif booking.payment_status == 'Partial' %}badge-warning{% else %}badge-danger{% endif %}">
+                                    {{ booking.payment_status }}
+                                </span>
+                            </td>
+                            <td>{{ booking.booking_time.strftime('%Y-%m-%d %H:%M') }}</td>
+                            <td>
+                                <div style="display: flex; gap: 8px;">
+                                    <a href="{{ url_for('bookings.detail', booking_id=booking.id) }}" class="btn-icon" title="View details">
+                                        <i class="fa-solid fa-eye"></i>
+                                    </a>
+                                    <a href="{{ url_for('bookings.edit', booking_id=booking.id) }}" class="btn-icon" title="Dispatch / Edit">
+                                        <i class="fa-solid fa-pen-to-square"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="10" style="text-align: center; color: var(--text-muted); padding: 40px 0;">
+                            No booking logs found.
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- PAGINATION AREA -->
+    {% if pagination and pagination.pages > 1 %}
+    <div class="pagination-area">
+        <span>Showing bookings page {{ pagination.page }} of {{ pagination.pages }}</span>
+        <div class="pagination-controls">
+            <button class="pagination-btn" {% if not pagination.has_prev %}disabled{% endif %} onclick="window.location.href='{{ url_for('bookings.index', page=pagination.prev_num, search=search_query, status=status_filter, payment_status=payment_filter) }}'">
+                <i class="fa-solid fa-chevron-left"></i> Prev
+            </button>
+            <button class="pagination-btn" {% if not pagination.has_next %}disabled{% endif %} onclick="window.location.href='{{ url_for('bookings.index', page=pagination.next_num, search=search_query, status=status_filter, payment_status=payment_filter) }}'">
+                Next <i class="fa-solid fa-chevron-right"></i>
+            </button>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

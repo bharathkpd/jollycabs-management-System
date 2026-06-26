@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+
+{% block title %}Booking Details: #{{ booking.id }} - Jolly Cabs{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-title-area">
+        <h1 class="page-title">Trip Booking Details</h1>
+        <span class="page-subtitle">Full itinerary specification and billing transactions ledger</span>
+    </div>
+    <div class="page-actions">
+        <a href="{{ url_for('bookings.index') }}" class="btn btn-secondary">
+            <i class="fa-solid fa-arrow-left"></i> Back to Ledger
+        </a>
+        <a href="{{ url_for('bookings.edit', booking_id=booking.id) }}" class="btn btn-primary">
+            <i class="fa-solid fa-pen-to-square"></i> Modify / Dispatch
+        </a>
+    </div>
+</div>
+
+<div class="profile-grid">
+    <!-- LEFT CARD: DETAILS LOG -->
+    <div class="profile-sidebar-card" style="text-align: left; align-items: flex-start; padding: 24px;">
+        <h3 style="margin-bottom: 20px; font-family: 'Outfit', sans-serif;">Trip specifications</h3>
+        
+        <div class="profile-details-list" style="margin-top: 0;">
+            <div class="profile-detail-item">
+                <div class="profile-detail-label">Booking ID</div>
+                <div class="profile-detail-value">#{{ booking.id }}</div>
+            </div>
+            <div class="profile-detail-item">
+                <div class="profile-detail-label">Customer Profile</div>
+                <div class="profile-detail-value">
+                    <a href="{{ url_for('customers.profile', customer_id=booking.customer.id) }}" style="font-weight: 600; color: var(--primary);">
+                        {{ booking.customer.name }}
+                    </a>
+                </div>
+            </div>
+            <div class="profile-detail-item">
+                <div class="profile-detail-label">Assigned Driver</div>
+                <div class="profile-detail-value">
+                    {% if booking.driver %}
+                        <a href="{{ url_for('drivers.profile', driver_id=booking.driver_id) }}" style="font-weight: 600; color: var(--primary);">
+                            {{ booking.driver.name }}
+                        </a>
+                    {% else %}
+                        <span class="badge badge-secondary">Unassigned</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="profile-detail-item">
+                <div class="profile-detail-label">Fleet Vehicle</div>
+                <div class="profile-detail-value">
+                    {% if booking.vehicle %}
+                        {{ booking.vehicle.model }} (<code>{{ booking.vehicle.vehicle_number }}</code>)
+                    {% else %}
+                        <span class="badge badge-secondary">Unassigned</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="profile-detail-item">
+                <div class="profile-detail-label">Pickup & Drop Route</div>
+                <div class="profile-detail-value" style="font-size: 13px; color: var(--text-secondary);">
+                    <strong>Pickup:</strong> {{ booking.pickup_location }}<br>
+                    <strong>Dropoff:</strong> {{ booking.drop_location }}
+                </div>
+            </div>
+            <div class="profile-detail-item">
+                <div class="profile-detail-label">Distance / Est. Fare</div>
+                <div class="profile-detail-value">
+                    {{ booking.distance }} KM / <span style="color: var(--success); font-weight: 600;">₹{{ "{:,.2f}".format(booking.fare) }}</span>
+                </div>
+            </div>
+            <div class="profile-detail-item">
+                <div class="profile-detail-label">Trip Status</div>
+                <div class="profile-detail-value">
+                    <span class="badge {% if booking.status == 'Completed' %}badge-success{% elif booking.status == 'Cancelled' %}badge-danger{% elif booking.status in ['Dispatched', 'Ongoing'] %}badge-info{% else %}badge-warning{% endif %}">
+                        {{ booking.status }}
+                    </span>
+                </div>
+            </div>
+            <div class="profile-detail-item">
+                <div class="profile-detail-label">Payment Status</div>
+                <div class="profile-detail-value">
+                    <span class="badge {% if booking.payment_status == 'Paid' %}badge-success{% elif booking.payment_status == 'Partial' %}badge-warning{% else %}badge-danger{% endif %}">
+                        {{ booking.payment_status }}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- RIGHT SIDE: PAYMENTS LEDGER & RECORD FORM -->
+    <div style="display: flex; flex-direction: column; gap: 20px;">
+        
+        <!-- Transaction List -->
+        <div class="table-card">
+            <div class="table-header-filters">
+                <h3 class="table-title">Transaction History</h3>
+            </div>
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Payment ID</th>
+                            <th>Amount</th>
+                            <th>Method</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if payments %}
+                            {% for payment in payments %}
+                                <tr>
+                                    <td>#{{ payment.id }}</td>
+                                    <td style="font-weight: 600; color: var(--success);">₹{{ "{:,.2f}".format(payment.amount) }}</td>
+                                    <td>{{ payment.payment_method }}</td>
+                                    <td>
+                                        <span class="badge {% if payment.status == 'Completed' %}badge-success{% else %}badge-danger{% endif %}">
+                                            {{ payment.status }}
+                                        </span>
+                                    </td>
+                                    <td>{{ payment.payment_date.strftime('%Y-%m-%d %H:%M') }}</td>
+                                </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 30px 0;">
+                                    No transaction payments recorded for this booking.
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Add Payment Box (if unpaid or partially paid) -->
+        {% if booking.payment_status != 'Paid' %}
+        <div class="form-card" style="max-width: 100%;">
+            <h3 style="margin-bottom: 20px;">Record Transaction Payment</h3>
+            <form action="{{ url_for('bookings.process_payment', booking_id=booking.id) }}" method="POST">
+                <div class="form-grid" style="grid-template-columns: 1fr 1fr;">
+                    <div class="form-group">
+                        <label class="form-label" for="amount">Payment Amount (INR) *</label>
+                        <input class="form-control" type="number" step="0.01" id="amount" name="amount" required placeholder="Enter amount to record">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="payment_method">Payment Method *</label>
+                        <select class="form-control" id="payment_method" name="payment_method">
+                            <option value="Cash">Cash</option>
+                            <option value="Card">Credit/Debit Card</option>
+                            <option value="UPI">UPI / QR Scan</option>
+                            <option value="Corporate Netbanking">Corporate Netbanking</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="display: flex; justify-content: flex-end; margin-top: 16px;">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fa-solid fa-file-invoice"></i> Process Payment
+                    </button>
+                </div>
+            </form>
+        </div>
+        {% endif %}
+        
+    </div>
+</div>
+{% endblock %}

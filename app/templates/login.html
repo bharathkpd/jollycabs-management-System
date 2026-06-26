@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JOMS Sign In - Jolly Cabs Operations Suite</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icon Suite -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom Style Sheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="login-body">
+
+    <div class="login-card">
+        
+        <!-- Flask Message Banner Flashers -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, msg in messages %}
+                    <div class="alert alert-{{ category }}">
+                        <i class="fa-solid {% if category == 'success' %}fa-circle-check{% else %}fa-circle-exclamation{% endif %}"></i>
+                        <span>{{ msg }}</span>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- RENDER FORGOT PASSWORD BLOCK -->
+        {% if forgot %}
+            <div class="login-header">
+                <div class="login-brand" style="display: flex; align-items: center; justify-content: center; gap: 4px;">
+                    <div class="nav-logo-circle">JC</div>
+                    <span class="nav-logo-text" style="color: var(--primary-dark)">Jolly Cabs</span>
+                </div>
+                <div class="login-subtitle">Recover administrative access</div>
+            </div>
+            
+            <form action="{{ url_for('auth.forgot_password') }}" method="POST">
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label class="form-label" for="email">Registered Email Address</label>
+                    <input class="form-control" type="email" id="email" name="email" required placeholder="name@jollycabs.in">
+                </div>
+                
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-bottom: 16px;">
+                    Send Recovery Instructions
+                </button>
+                
+                <div style="text-align: center; font-size: 14px;">
+                    <a href="{{ url_for('auth.login') }}" style="color: var(--primary-dark); font-weight: 600;">
+                        <i class="fa-solid fa-arrow-left"></i> Back to login
+                    </a>
+                </div>
+            </form>
+
+        <!-- RENDER DEFAULT LOGIN BLOCK -->
+        {% else %}
+            <div class="login-header">
+                <div class="login-brand" style="display: flex; align-items: center; justify-content: center; gap: 4px;">
+                    <div class="nav-logo-circle">JC</div>
+                    <span class="nav-logo-text" style="color: var(--primary-dark)">Jolly Cabs</span>
+                </div>
+                <div class="login-subtitle">Operations Management Suite (JOMS)</div>
+            </div>
+            
+            <form action="{{ url_for('auth.login') }}" method="POST">
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label class="form-label" for="username">Admin Username</label>
+                    <input class="form-control" type="text" id="username" name="username" required placeholder="Enter username">
+                </div>
+                
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label class="form-label" for="password">Password</label>
+                    <input class="form-control" type="password" id="password" name="password" required placeholder="Enter password">
+                </div>
+                
+                <div style="display: flex; justify-content: flex-end; margin-bottom: 24px; font-size: 13px;">
+                    <a href="{{ url_for('auth.forgot_password') }}" style="color: var(--text-secondary); font-weight: 500;">
+                        Forgot Password?
+                    </a>
+                </div>
+                
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    Access System <i class="fa-solid fa-right-to-bracket"></i>
+                </button>
+            </form>
+        {% endif %}
+        
+    </div>
+
+    <!-- Client-side alerts handler -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                setTimeout(() => {
+                    alert.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                    alert.style.opacity = '0';
+                    alert.style.transform = 'translateY(-10px)';
+                    setTimeout(() => alert.remove(), 500);
+                }, 5000);
+            });
+        });
+    </script>
+</body>
+</html>

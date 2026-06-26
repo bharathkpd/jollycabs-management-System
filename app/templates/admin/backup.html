@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}Database Backups - Jolly Cabs{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-title-area">
+        <h1 class="page-title">Database Snapshot Backups</h1>
+        <span class="page-subtitle">Save snapshot hot copies of the SQLite file database to ensure business continuity</span>
+    </div>
+    <div class="page-actions">
+        <form action="{{ url_for('admin.backup_create') }}" method="POST">
+            <button type="submit" class="btn btn-primary">
+                <i class="fa-solid fa-cloud-arrow-up"></i> Generate Hot Snapshot
+            </button>
+        </form>
+    </div>
+</div>
+
+<div class="table-card" style="max-width: 800px;">
+    <div class="table-header-filters">
+        <h3 class="table-title">System Backup Snapshots Archive</h3>
+    </div>
+    
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Snapshot File Name</th>
+                    <th>File Size (KB)</th>
+                    <th>Backup Created Date</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if backups %}
+                    {% for item in backups %}
+                        <tr>
+                            <td style="font-family: monospace; font-size: 13px;">{{ item.filename }}</td>
+                            <td>{{ item.size_kb }} KB</td>
+                            <td>{{ item.created_at }}</td>
+                            <td>
+                                <form action="{{ url_for('admin.backup_delete', filename=item.filename) }}" method="POST" onsubmit="return confirmAction('Delete this backup snapshot file permanently? This cannot be undone.');">
+                                    <button type="submit" class="btn-icon" style="color: var(--danger); border-color: var(--danger-light);" title="Delete archive file">
+                                        <i class="fa-solid fa-trash-can"></i> Delete
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 40px 0;">
+                            No database backups generated yet. Click "Generate Hot Snapshot" above.
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

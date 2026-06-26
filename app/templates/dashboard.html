@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+
+{% block title %}Operations Dashboard - Jolly Cabs{% endblock %}
+
+{% block head %}
+<!-- Chart.js Library -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-title-area">
+        <h1 class="page-title">Operations Dashboard</h1>
+        <span class="page-subtitle">Real-time stats and fleet tracking metrics</span>
+    </div>
+    <div class="page-actions">
+        <a href="{{ url_for('bookings.add') }}" class="btn btn-primary">
+            <i class="fa-solid fa-circle-plus"></i> New Booking
+        </a>
+    </div>
+</div>
+
+<!-- KPI CARDS GRID -->
+<div class="kpi-grid">
+    <div class="kpi-card">
+        <div class="kpi-header">
+            <span>Total Bookings</span>
+            <div class="kpi-icon primary"><i class="fa-solid fa-list-check"></i></div>
+        </div>
+        <div class="kpi-value">{{ total_bookings }}</div>
+        <div class="kpi-trend up"><i class="fa-solid fa-circle-up"></i> Lifetime</div>
+    </div>
+    
+    <div class="kpi-card">
+        <div class="kpi-header">
+            <span>Today's Trips</span>
+            <div class="kpi-icon info"><i class="fa-solid fa-route"></i></div>
+        </div>
+        <div class="kpi-value">{{ todays_trips }}</div>
+        <div class="kpi-trend up"><i class="fa-solid fa-clock"></i> Today</div>
+    </div>
+    
+    <div class="kpi-card">
+        <div class="kpi-header">
+            <span>Monthly Revenue</span>
+            <div class="kpi-icon success"><i class="fa-solid fa-indian-rupee-sign"></i></div>
+        </div>
+        <div class="kpi-value">₹{{ "{:,.2f}".format(monthly_revenue) }}</div>
+        <div class="kpi-trend up"><i class="fa-solid fa-calendar-days"></i> Current Month</div>
+    </div>
+    
+    <div class="kpi-card">
+        <div class="kpi-header">
+            <span>Active Drivers</span>
+            <div class="kpi-icon warning"><i class="fa-solid fa-id-card"></i></div>
+        </div>
+        <div class="kpi-value">{{ active_drivers }}</div>
+        <div class="kpi-trend up"><i class="fa-solid fa-user-check"></i> On Duty</div>
+    </div>
+    
+    <div class="kpi-card">
+        <div class="kpi-header">
+            <span>Active Vehicles</span>
+            <div class="kpi-icon primary"><i class="fa-solid fa-taxi"></i></div>
+        </div>
+        <div class="kpi-value">{{ active_vehicles }}</div>
+        <div class="kpi-trend up"><i class="fa-solid fa-circle-check"></i> In Service</div>
+    </div>
+    
+    <div class="kpi-card">
+        <div class="kpi-header">
+            <span>Completed Trips</span>
+            <div class="kpi-icon success"><i class="fa-solid fa-circle-check"></i></div>
+        </div>
+        <div class="kpi-value">{{ completed_trips }}</div>
+        <div class="kpi-trend up"><i class="fa-solid fa-route"></i> Dispatched</div>
+    </div>
+    
+    <div class="kpi-card">
+        <div class="kpi-header">
+            <span>Cancelled Trips</span>
+            <div class="kpi-icon danger"><i class="fa-solid fa-circle-xmark"></i></div>
+        </div>
+        <div class="kpi-value">{{ cancelled_trips }}</div>
+        <div class="kpi-trend down"><i class="fa-solid fa-ban"></i> Aborted</div>
+    </div>
+    
+    <div class="kpi-card">
+        <div class="kpi-header">
+            <span>Pending Payments</span>
+            <div class="kpi-icon warning"><i class="fa-solid fa-circle-exclamation"></i></div>
+        </div>
+        <div class="kpi-value">{{ pending_payments }}</div>
+        <div class="kpi-trend down"><i class="fa-solid fa-hourglass-half"></i> Outstanding</div>
+    </div>
+</div>
+
+<!-- CHARTS PANEL -->
+<div class="charts-grid">
+    <div class="chart-card">
+        <div class="chart-header">
+            <h3 class="chart-title">Revenue Trend (Last 7 Days)</h3>
+        </div>
+        <div class="chart-body">
+            <canvas id="revenueTrendChart" data-chart-data="{{ revenue_chart_data }}"></canvas>
+        </div>
+    </div>
+    
+    <div class="chart-card">
+        <div class="chart-header">
+            <h3 class="chart-title">Bookings Trend (Last 7 Days)</h3>
+        </div>
+        <div class="chart-body">
+            <canvas id="bookingsTrendChart" data-chart-data="{{ bookings_chart_data }}"></canvas>
+        </div>
+    </div>
+    
+    <div class="chart-card">
+        <div class="chart-header">
+            <h3 class="chart-title">Vehicle Fleet Status</h3>
+        </div>
+        <div class="chart-body">
+            <canvas id="vehicleUtilizationChart" data-chart-data="{{ vehicle_chart_data }}"></canvas>
+        </div>
+    </div>
+    
+    <div class="chart-card">
+        <div class="chart-header">
+            <h3 class="chart-title">Top 5 Drivers Performance</h3>
+        </div>
+        <div class="chart-body">
+            <canvas id="driverPerformanceChart" data-chart-data="{{ driver_chart_data }}"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- RECENT BOOKINGS LIST -->
+<div class="table-card">
+    <div class="table-header-filters">
+        <h3 class="table-title">Recent Trips</h3>
+        <a href="{{ url_for('bookings.index') }}" class="btn btn-secondary btn-icon" title="View All Bookings">
+            View All Bookings <i class="fa-solid fa-arrow-right-long"></i>
+        </a>
+    </div>
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Trip ID</th>
+                    <th>Customer</th>
+                    <th>Driver</th>
+                    <th>Vehicle</th>
+                    <th>Route (Pick - Drop)</th>
+                    <th>Fare</th>
+                    <th>Status</th>
+                    <th>Payment</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if recent_bookings %}
+                    {% for booking in recent_bookings %}
+                        <tr>
+                            <td>#{{ booking.id }}</td>
+                            <td>
+                                <a href="{{ url_for('customers.profile', customer_id=booking.customer.id) }}" style="font-weight: 600; color: var(--primary);">
+                                    {{ booking.customer.name }}
+                                </a>
+                            </td>
+                            <td>
+                                {% if booking.driver %}
+                                    <a href="{{ url_for('drivers.profile', driver_id=booking.driver.id) }}" style="color: var(--text-primary);">
+                                        {{ booking.driver.name }}
+                                    </a>
+                                {% else %}
+                                    <span class="badge badge-secondary">Unassigned</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ booking.vehicle.vehicle_number if booking.vehicle else 'Unassigned' }}</td>
+                            <td>{{ booking.pickup_location }} &rarr; {{ booking.drop_location }}</td>
+                            <td>₹{{ "{:,.2f}".format(booking.fare) }}</td>
+                            <td>
+                                <span class="badge {% if booking.status == 'Completed' %}badge-success{% elif booking.status == 'Cancelled' %}badge-danger{% elif booking.status in ['Dispatched', 'Ongoing'] %}badge-info{% else %}badge-warning{% endif %}">
+                                    {{ booking.status }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge {% if booking.payment_status == 'Paid' %}badge-success{% elif booking.payment_status == 'Partial' %}badge-warning{% else %}badge-danger{% endif %}">
+                                    {{ booking.payment_status }}
+                                </span>
+                            </td>
+                            <td>
+                                <a href="{{ url_for('bookings.detail', booking_id=booking.id) }}" class="btn-icon" title="View Booking Details">
+                                    <i class="fa-solid fa-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="9" style="text-align: center; color: var(--text-muted); padding: 40px 0;">
+                            No recent bookings found.
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<!-- Dashboard Charts Script -->
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+{% endblock %}

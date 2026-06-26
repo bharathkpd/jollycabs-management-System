@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}{{ action }} Customer - Jolly Cabs{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-title-area">
+        <h1 class="page-title">{{ action }} Customer</h1>
+        <span class="page-subtitle">{% if action == 'Add' %}Create a new customer profile{% else %}Modify existing customer specifications and contact details{% endif %}</span>
+    </div>
+    <div class="page-actions">
+        <a href="{{ url_for('customers.index') }}" class="btn btn-secondary">
+            <i class="fa-solid fa-arrow-left"></i> Back to List
+        </a>
+    </div>
+</div>
+
+<div class="form-card">
+    <form action="{% if action == 'Add' %}{{ url_for('customers.add') }}{% else %}{{ url_for('customers.edit', customer_id=customer.id) }}{% endif %}" method="POST">
+        
+        <div class="form-grid">
+            <div class="form-group">
+                <label class="form-label" for="name">Customer Full Name *</label>
+                <input class="form-control" type="text" id="name" name="name" required placeholder="e.g. Amit Sharma" value="{{ customer.name if customer else '' }}">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="phone">Phone Number *</label>
+                <input class="form-control" type="tel" id="phone" name="phone" required placeholder="e.g. +91 9811012345" value="{{ customer.phone if customer else '' }}">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="email">Email Address *</label>
+                <input class="form-control" type="email" id="email" name="email" required placeholder="e.g. amit@gmail.com" value="{{ customer.email if customer else '' }}">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="status">Customer Status</label>
+                <select class="form-control" id="status" name="status">
+                    <option value="Active" {% if customer and customer.status == 'Active' %}selected{% endif %}>Active</option>
+                    <option value="Inactive" {% if customer and customer.status == 'Inactive' %}selected{% endif %}>Inactive (Suspended)</option>
+                </select>
+            </div>
+            
+            <div class="form-group form-group-full">
+                <label class="form-label" for="address">Corporate/Billing Address *</label>
+                <textarea class="form-control" id="address" name="address" rows="3" required placeholder="e.g. Flat 302, Sector 12, Dwarka, New Delhi">{{ customer.address if customer else '' }}</textarea>
+            </div>
+        </div>
+        
+        <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 12px;">
+            <a href="{{ url_for('customers.index') }}" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary">
+                <i class="fa-solid fa-floppy-disk"></i> Save Customer Account
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

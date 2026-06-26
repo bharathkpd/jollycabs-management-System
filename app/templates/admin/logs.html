@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}System Audit Logs - Jolly Cabs{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-title-area">
+        <h1 class="page-title">Activity Audit Trail</h1>
+        <span class="page-subtitle">Track administrative tasks, logins, database snapshots, edits, and reports generated in the suite</span>
+    </div>
+</div>
+
+<div class="table-card">
+    <div class="table-header-filters">
+        <h3 class="table-title">System Action Logs</h3>
+    </div>
+    
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Log ID</th>
+                    <th>User / Admin</th>
+                    <th>Role</th>
+                    <th>Action</th>
+                    <th>Details</th>
+                    <th>Timestamp</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if logs %}
+                    {% for item in logs %}
+                        <tr>
+                            <td>#{{ item.id }}</td>
+                            <td style="font-weight: 600;">{{ item.admin.name }} ({{ item.admin.username }})</td>
+                            <td><span class="badge badge-secondary">{{ item.admin.role }}</span></td>
+                            <td style="font-weight: 500;">{{ item.action }}</td>
+                            <td>{{ item.details }}</td>
+                            <td>{{ item.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                        </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 40px 0;">
+                            No activities logged yet.
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- PAGINATION AREA -->
+    {% if pagination and pagination.pages > 1 %}
+    <div class="pagination-area">
+        <span>Showing audit logs page {{ pagination.page }} of {{ pagination.pages }}</span>
+        <div class="pagination-controls">
+            <button class="pagination-btn" {% if not pagination.has_prev %}disabled{% endif %} onclick="window.location.href='{{ url_for('admin.activity_logs', page=pagination.prev_num) }}'">
+                <i class="fa-solid fa-chevron-left"></i> Prev
+            </button>
+            <button class="pagination-btn" {% if not pagination.has_next %}disabled{% endif %} onclick="window.location.href='{{ url_for('admin.activity_logs', page=pagination.next_num) }}'">
+                Next <i class="fa-solid fa-chevron-right"></i>
+            </button>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

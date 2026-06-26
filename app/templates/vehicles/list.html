@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+{% block title %}Vehicles Fleet - Jolly Cabs{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-title-area">
+        <h1 class="page-title">Vehicles Fleet</h1>
+        <span class="page-subtitle">Track company cars, fuel types, document deadlines, and maintenance schedules</span>
+    </div>
+    {% if current_user.has_role('Super Admin', 'Manager') %}
+    <div class="page-actions">
+        <a href="{{ url_for('vehicles.add') }}" class="btn btn-primary">
+            <i class="fa-solid fa-car-side"></i> Add Vehicle
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- VEHICLES TABLE CARD -->
+<div class="table-card">
+    <div class="table-header-filters">
+        <h3 class="table-title">Fleet Register</h3>
+        
+        <form method="GET" action="{{ url_for('vehicles.index') }}" class="table-filters">
+            <input type="text" name="search" placeholder="Search plate or model..." class="filter-select" style="min-width: 200px;" value="{{ search_query }}">
+            
+            <select name="availability" class="filter-select" onchange="this.form.submit()">
+                <option value="">All Availabilities</option>
+                <option value="Available" {% if availability_filter == 'Available' %}selected{% endif %}>Available</option>
+                <option value="Busy" {% if availability_filter == 'Busy' %}selected{% endif %}>Busy</option>
+                <option value="Out of Service" {% if availability_filter == 'Out of Service' %}selected{% endif %}>Out of Service</option>
+            </select>
+            
+            <select name="maintenance_status" class="filter-select" onchange="this.form.submit()">
+                <option value="">All Health Statuses</option>
+                <option value="Good" {% if maintenance_filter == 'Good' %}selected{% endif %}>Good</option>
+                <option value="Under Maintenance" {% if maintenance_filter == 'Under Maintenance' %}selected{% endif %}>Under Maintenance</option>
+                <option value="Needs Inspection" {% if maintenance_filter == 'Needs Inspection' %}selected{% endif %}>Needs Inspection</option>
+            </select>
+            
+            <button type="submit" class="btn btn-secondary">Filter</button>
+            {% if search_query or availability_filter or maintenance_filter %}
+                <a href="{{ url_for('vehicles.index') }}" class="btn btn-danger" title="Clear Filters"><i class="fa-solid fa-filter-circle-xmark"></i></a>
+            {% endif %}
+        </form>
+    </div>
+    
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Model</th>
+                    <th>Vehicle Plate</th>
+                    <th>Fuel Type</th>
+                    <th>Insurance Expiry</th>
+                    <th>Permit Expiry</th>
+                    <th>Health</th>
+                    <th>Availability</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if vehicles %}
+                    {% for vehicle in vehicles %}
+                        <tr>
+                            <td>#{{ vehicle.id }}</td>
+                            <td style="font-weight: 600;">{{ vehicle.model }}</td>
+                            <td><code>{{ vehicle.vehicle_number }}</code></td>
+                            <td>{{ vehicle.fuel_type }}</td>
+                            <td>{{ vehicle.insurance_expiry.strftime('%Y-%m-%d') }}</td>
+                            <td>{{ vehicle.permit_expiry.strftime('%Y-%m-%d') }}</td>
+                            <td>
+                                <span class="badge {% if vehicle.maintenance_status == 'Good' %}badge-success{% elif vehicle.maintenance_status == 'Under Maintenance' %}badge-warning{% else %}badge-danger{% endif %}">
+                                    {{ vehicle.maintenance_status }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge {% if vehicle.availability == 'Available' %}badge-success{% elif vehicle.availability == 'Busy' %}badge-warning{% else %}badge-danger{% endif %}">
+                                    {{ vehicle.availability }}
+                                </span>
+                            </td>
+                            <td>
+                                <div style="display: flex; gap: 8px;">
+                                    {% if current_user.has_role('Super Admin', 'Manager') %}
+                                        <a href="{{ url_for('vehicles.edit', vehicle_id=vehicle.id) }}" class="btn-icon" title="Edit details">
+                                            <i class="fa-solid fa-pen"></i>
+                                        </a>
+                                    {% endif %}
+                                    {% if current_user.has_role('Super Admin') %}
+                                        <form action="{{ url_for('vehicles.delete', vehicle_id=vehicle.id) }}" method="POST" onsubmit="return confirmAction('Delete vehicle {{ vehicle.vehicle_number }} permanently? This action cannot be undone.');">
+                                            <button type="submit" class="btn-icon" style="color: var(--danger); border-color: var(--danger-light);" title="Delete vehicle">
+                                                <i class="fa-solid fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="9" style="text-align: center; color: var(--text-muted); padding: 40px 0;">
+                            No vehicles found matching your criteria.
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- PAGINATION AREA -->
+    {% if pagination and pagination.pages > 1 %}
+    <div class="pagination-area">
+        <span>Showing vehicles page {{ pagination.page }} of {{ pagination.pages }}</span>
+        <div class="pagination-controls">
+            <button class="pagination-btn" {% if not pagination.has_prev %}disabled{% endif %} onclick="window.location.href='{{ url_for('vehicles.index', page=pagination.prev_num, search=search_query, availability=availability_filter, maintenance_status=maintenance_filter) }}'">
+                <i class="fa-solid fa-chevron-left"></i> Prev
+            </button>
+            <button class="pagination-btn" {% if not pagination.has_next %}disabled{% endif %} onclick="window.location.href='{{ url_for('vehicles.index', page=pagination.next_num, search=search_query, availability=availability_filter, maintenance_status=maintenance_filter) }}'">
+                Next <i class="fa-solid fa-chevron-right"></i>
+            </button>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

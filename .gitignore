@@ -1,0 +1,27 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Databases & local state
+*.db
+*.sqlite
+joms.db
+
+# Backups
+backups/
+
+# Uploaded files
+app/static/uploads/
+
+# IDE files
+.vscode/
+.idea/
+.project
+.pydevproject
+.settings/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp

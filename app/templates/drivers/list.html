@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block title %}Drivers Management - Jolly Cabs{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-title-area">
+        <h1 class="page-title">Drivers Management</h1>
+        <span class="page-subtitle">Manage company drivers, profiles, licensing, and compliance status</span>
+    </div>
+    {% if current_user.has_role('Super Admin', 'Manager') %}
+    <div class="page-actions">
+        <a href="{{ url_for('drivers.add') }}" class="btn btn-primary">
+            <i class="fa-solid fa-user-plus"></i> Add Driver
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- DRIVERS TABLE CARD -->
+<div class="table-card">
+    <div class="table-header-filters">
+        <h3 class="table-title">Drivers Register</h3>
+        
+        <form method="GET" action="{{ url_for('drivers.index') }}" class="table-filters">
+            <input type="text" name="search" placeholder="Search by name, phone..." class="filter-select" style="min-width: 200px;" value="{{ search_query }}">
+            
+            <select name="status" class="filter-select" onchange="this.form.submit()">
+                <option value="">All Statuses</option>
+                <option value="Active" {% if status_filter == 'Active' %}selected{% endif %}>Active</option>
+                <option value="Suspended" {% if status_filter == 'Suspended' %}selected{% endif %}>Suspended</option>
+                <option value="Inactive" {% if status_filter == 'Inactive' %}selected{% endif %}>Inactive</option>
+            </select>
+            
+            <select name="availability" class="filter-select" onchange="this.form.submit()">
+                <option value="">All Availabilities</option>
+                <option value="Available" {% if availability_filter == 'Available' %}selected{% endif %}>Available</option>
+                <option value="Busy" {% if availability_filter == 'Busy' %}selected{% endif %}>Busy</option>
+                <option value="Off-Duty" {% if availability_filter == 'Off-Duty' %}selected{% endif %}>Off-Duty</option>
+            </select>
+            
+            <button type="submit" class="btn btn-secondary">Filter</button>
+            {% if search_query or status_filter or availability_filter %}
+                <a href="{{ url_for('drivers.index') }}" class="btn btn-danger" title="Clear Filters"><i class="fa-solid fa-filter-circle-xmark"></i></a>
+            {% endif %}
+        </form>
+    </div>
+    
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Driver Name</th>
+                    <th>License Number</th>
+                    <th>License Expiry</th>
+                    <th>Phone</th>
+                    <th>Availability</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if drivers %}
+                    {% for driver in drivers %}
+                        <tr>
+                            <td>#{{ driver.id }}</td>
+                            <td>
+                                <a href="{{ url_for('drivers.profile', driver_id=driver.id) }}" style="font-weight: 600; color: var(--primary);">
+                                    {{ driver.name }}
+                                </a>
+                            </td>
+                            <td><code>{{ driver.license_number }}</code></td>
+                            <td>{{ driver.license_expiry.strftime('%Y-%m-%d') }}</td>
+                            <td>{{ driver.phone }}</td>
+                            <td>
+                                <span class="badge {% if driver.availability == 'Available' %}badge-success{% elif driver.availability == 'Busy' %}badge-warning{% else %}badge-secondary{% endif %}">
+                                    {{ driver.availability }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge {% if driver.status == 'Active' %}badge-success{% elif driver.status == 'Suspended' %}badge-danger{% else %}badge-secondary{% endif %}">
+                                    {{ driver.status }}
+                                </span>
+                            </td>
+                            <td>
+                                <div style="display: flex; gap: 8px;">
+                                    <a href="{{ url_for('drivers.profile', driver_id=driver.id) }}" class="btn-icon" title="View Profile">
+                                        <i class="fa-solid fa-eye"></i>
+                                    </a>
+                                    {% if current_user.has_role('Super Admin', 'Manager') %}
+                                        <a href="{{ url_for('drivers.edit', driver_id=driver.id) }}" class="btn-icon" title="Edit details">
+                                            <i class="fa-solid fa-pen"></i>
+                                        </a>
+                                    {% endif %}
+                                    {% if current_user.has_role('Super Admin') %}
+                                        <form action="{{ url_for('drivers.delete', driver_id=driver.id) }}" method="POST" onsubmit="return confirmAction('Delete driver {{ driver.name }} permanently? This action cannot be undone.');">
+                                            <button type="submit" class="btn-icon" style="color: var(--danger); border-color: var(--danger-light);" title="Delete driver">
+                                                <i class="fa-solid fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="8" style="text-align: center; color: var(--text-muted); padding: 40px 0;">
+                            No drivers registered matching your criteria.
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- PAGINATION AREA -->
+    {% if pagination and pagination.pages > 1 %}
+    <div class="pagination-area">
+        <span>Showing drivers page {{ pagination.page }} of {{ pagination.pages }}</span>
+        <div class="pagination-controls">
+            <button class="pagination-btn" {% if not pagination.has_prev %}disabled{% endif %} onclick="window.location.href='{{ url_for('drivers.index', page=pagination.prev_num, search=search_query, status=status_filter, availability=availability_filter) }}'">
+                <i class="fa-solid fa-chevron-left"></i> Prev
+            </button>
+            <button class="pagination-btn" {% if not pagination.has_next %}disabled{% endif %} onclick="window.location.href='{{ url_for('drivers.index', page=pagination.next_num, search=search_query, status=status_filter, availability=availability_filter) }}'">
+                Next <i class="fa-solid fa-chevron-right"></i>
+            </button>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
